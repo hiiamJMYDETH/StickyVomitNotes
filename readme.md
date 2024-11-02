@@ -5,4 +5,4 @@ Sticky Vomit Journals is a simple notetaking app designed for word vommitters an
 Oh yeah, you can save all your notes and delete all your notes, if you wish. 
 
 #Link
-https://hiiamjmydeth.github.io/Open-Source-NoteTaking/ 
+https://hiiamjmydeth.github.io/StickyVomitNotes/
