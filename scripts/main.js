@@ -226,7 +226,6 @@ const addNote = (text = "", title = "") => {
         const selection = window.getSelection();
         if (selection.rangeCount === 0) return;
         const range = selection.getRangeAt(0);
-    
         if (event.key === 'Tab') {
             event.preventDefault();
             
@@ -288,14 +287,16 @@ const addNote = (text = "", title = "") => {
             }
         }
         if (event.key === 'Backspace') {
-            event.preventDefault();
             const bulletLine = range.commonAncestorContainer.parentNode.closest('.line');
+            const currLine = range.commonAncestorContainer;
             const priorLine = bulletLine ? bulletLine.previousElementSibling : null;
             
             if (!range.collapsed) {
+                event.preventDefault();
                 lastDeletedContent = range.toString();
                 range.deleteContents();
             } else if (bulletLine) {
+                event.preventDefault();
                 const lineContent = bulletLine.querySelector('.line-content').textContent.trim();
                 let isLineRemoved = false;
                 if (lineContent === '' || lineContent === '\u200B') {
@@ -310,7 +311,8 @@ const addNote = (text = "", title = "") => {
                 }
                 if (priorLine && isLineRemoved) {
                     const newRange = document.createRange();
-                    newRange.selectNodeContents(priorLine.querySelector('.line-content').firstChild);
+                    const newTextLine = priorLine.querySelector('.line-content').firstChild ? priorLine.querySelector('.line-content').firstChild : priorLine.querySelector('.line-content');
+                    newRange.selectNodeContents(newTextLine);
                     newRange.collapse(false);
     
                     selection.removeAllRanges();
@@ -318,11 +320,19 @@ const addNote = (text = "", title = "") => {
                     priorLine.focus();
                 }
             }
-            else if (range.startOffset > 0) {
-                const textNode = range.startContainer;
-                textNode.deleteData(range.startOffset - 1, 1);
-                range.setStart(textNode, range.startOffset);
-                range.collapse(true);
+            if (currLine && range.collapsed) {
+                const priorLine = currLine.previousElementSibling;
+                if (priorLine) {
+                    this.removeChild(currLine);
+                    const newRange = document.createRange();
+                    const newTextLine = priorLine.querySelector('.line-content') ? priorLine.querySelector('.line-content') : priorLine.parentNode;
+                    newRange.selectNodeContents(newTextLine);
+                    newRange.collapse(false);
+    
+                    selection.removeAllRanges();
+                    selection.addRange(newRange);
+                    priorLine.focus();
+                }
             }
         }
         
@@ -347,7 +357,6 @@ const addNote = (text = "", title = "") => {
 
     const addBulletPointsBtn = note.querySelector('.add-bulletpoints');
     addBulletPointsBtn.addEventListener('click', function(event) {
-        console.log('bullet point toggle: ' + enableBulletPoints);
         if (enableBulletPoints) {
             enableBulletPoints = false;
             addBulletPointsBtn.style.background = 'white';
