@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en-US">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewpoint" content="width=device-width">
+        <title>StickyVomit Journals's Notes</title>
+        <link rel="stylesheet" href="styles/main.css">
+    </head>
+    <body id="body">
+        <div class="header">
+            <button class="button new-note" id="new-note">New note</button>
+            <button class="button save-all-notes" id="save-notes">Save all notes</button>
+            <button class="button delete-all-notes" id="delete-all-notes">Delete all notes</button>
+            <button class="button history" id="note-history">History</button>
+            <button class="button about-page" id="about">About</button>
+        </div>
+        <div class="change-font-container" id="change-font" style="display:none">
+            <button class="button exit-font-container" onclick="changeFont()">Exit</button>
+            <h1>Change font</h1>
+            <input list="font-options" id="font-family" placeholder="Arial">
+            <datalist id="font-options">
+                <option value="Times New Roman" id="Times-New-Roman"></option>
+                <option value="Arial" id="Arial"></option>
+            </datalist>
+            <button class="button left-align">Align left</button>
+            <button class="button center-align">Align center</button>
+            <button class="button right-align">Align right</button>
+        </div>
+        <div class="note-container" id="note-div">
+        </div>
+        <script src="scripts/main.js"></script>
+    </body>
+</html>
