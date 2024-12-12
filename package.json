@@ -1,0 +1,19 @@
+{
+  "name": "package",
+  "version": "1.0.0",
+  "description": "none",
+  "main": "events.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "module",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "module",
+    "url": "sticky_vomit_notes"
+  },
+  "author": "",
+  "license": "ISC"
+}

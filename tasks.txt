@@ -1,4 +1,2 @@
 Things to do:
-1. Fix bulletpoint functionality
-2. Make a server and a account system
-3. Make a virtual storage system
+1. Make a save toggle and have it work like the default save button on Word.

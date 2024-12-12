@@ -1,3 +1,5 @@
+import EventEmitter from '../events.js';
+
 // Global Constants 
 let count = 0;
 let rightClickMenuToggle = false;
@@ -8,6 +10,7 @@ const saveAllNotesBtn = document.getElementById('save-notes');
 const histBtn = document.getElementById('note-history');
 const aboutBtn = document.getElementById('about');
 const bulletsymbols = ['•','◦', '▪', '‣'];
+const emitter = new EventEmitter();
 
 
 // menu buttons
@@ -216,8 +219,12 @@ const addNote = (text = "", title = "") => {
             }
         }
         else if (event.target.classList.contains('save-note')) {
+            emitter.on('sayHello', (noteName) => {
+                console.log(`${noteName} is about to be saved.`);
+            });
             saveNotes();
             console.log('Note saved');
+            emitter.emit('sayHello', note.id);
         }
     });
 
