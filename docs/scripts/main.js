@@ -53,6 +53,13 @@ class Trie {
     }
 }
 
+function saveANote(noteId) {
+    const noteContent = document.querySelectorAll('.content');
+    const noteTitle = document.querySelectorAll('.title');
+    console.log(noteContent);
+    console.log(noteTitle);
+}
+
 // saving notes to local storage
 function saveNotes() {
     // const notes = document.querySelectorAll('.note-box');
@@ -187,7 +194,7 @@ const addNote = (text = "", title = "") => {
     note.id = `note-${count}`;
     note.innerHTML = `
         <div class="icons">
-            <button class="button save-note" data-note-id="${count}">Save note</button>
+            <a href="path/to/note-${count}.txt" download=${title} class="button save-note" data-note-id="${count}">Save note</a>
             <button class="button delete-note" data-note-id="${count}">Delete note</button>
             <button class="button add-bulletpoints" data-note-id="${count}">Add bulletpoints</button>
         </div>
@@ -219,12 +226,13 @@ const addNote = (text = "", title = "") => {
             }
         }
         else if (event.target.classList.contains('save-note')) {
-            emitter.on('sayHello', (noteName) => {
-                console.log(`${noteName} is about to be saved.`);
+            emitter.on('saveNote', (noteName) => {
+                console.log(`${noteName.id} is about to be saved.`);
+                saveANote(note);
             });
             saveNotes();
             console.log('Note saved');
-            emitter.emit('sayHello', note.id);
+            emitter.emit('saveNote', note);
         }
     });
 
@@ -274,11 +282,18 @@ const addNote = (text = "", title = "") => {
             }
             else {
                 const newDiv = document.createElement('div');
+                // const br = document.createElement('br');
+                // newDiv.classList.add('non-bullet-line');
+                // br.classList.add('line-content');
+                // br.contentEditable = 'true';
+                // newDiv.appendChild(br);
+                const contentDiv = document.createElement('div');
+                contentDiv.classList.add('line-content');
+                contentDiv.contentEditable = 'true';
                 const br = document.createElement('br');
                 newDiv.classList.add('non-bullet-line');
-                br.classList.add('line-content');
-                br.contentEditable = 'true';
-                newDiv.appendChild(br);
+                contentDiv.appendChild(br);
+                newDiv.appendChild(contentDiv);
         
                 this.appendChild(newDiv);
         
@@ -318,7 +333,12 @@ const addNote = (text = "", title = "") => {
                 }
                 if (priorLine && isLineRemoved) {
                     const newRange = document.createRange();
-                    const newTextLine = priorLine.querySelector('.line-content').firstChild ? priorLine.querySelector('.line-content').firstChild : priorLine.querySelector('.line-content');
+                    console.log(priorLine);
+                    const lineContent = priorLine.querySelector('.line-content');
+                    console.log(priorLine);
+                    const newTextLine = lineContent && lineContent.firstChild ? lineContent.firstChild : priorLine; // Currently having an issue with the bulletpoint thing where it focuses on the 
+                    console.log(newTextLine);
+                    // const newTextLine = priorLine.querySelector('.line-content').firstChild ? priorLine.querySelector('.line-content').firstChild : priorLine.querySelector('.line-content');
                     newRange.selectNodeContents(newTextLine);
                     newRange.collapse(false);
     
