@@ -54,10 +54,12 @@ class Trie {
 }
 
 function saveANote(noteId) {
-    const noteContent = document.querySelectorAll('.content');
-    const noteTitle = document.querySelectorAll('.title');
+    const noteContent = document.querySelector('.content');
+    const noteTitle = document.querySelector('.title').textContent;
     console.log(noteContent);
     console.log(noteTitle);
+    // Loop the noteContent
+
 }
 
 // saving notes to local storage
@@ -189,12 +191,15 @@ function deleteRightClickMenu() {
 const addNote = (text = "", title = "") => {
     const note = document.createElement("div");
     const noteContainer = document.getElementById('note-div');
+    const sample = `<div id="default-line" class="non-bullet-line">
+        <div class="line-content" contenteditable="true">Hello World</div>
+    </div>`
     
     note.classList.add("note-box");
     note.id = `note-${count}`;
     note.innerHTML = `
         <div class="icons">
-            <a href="path/to/note-${count}.txt" download=${title} class="button save-note" data-note-id="${count}">Save note</a>
+            <button class="button save-note" data-note-id="${count}">Save note</a>
             <button class="button delete-note" data-note-id="${count}">Delete note</button>
             <button class="button add-bulletpoints" data-note-id="${count}">Add bulletpoints</button>
         </div>
@@ -204,7 +209,7 @@ const addNote = (text = "", title = "") => {
             </div>
         </div>
         <div contenteditable="true" class="content">
-            ${text || "Hello world!"}
+            ${text || (sample)}
         </div>
     `;
 
@@ -212,6 +217,7 @@ const addNote = (text = "", title = "") => {
     dragElement(note);
     count++; 
     let enableBulletPoints = false;
+    let defaultLine = title ? false : true;
     let lastDeletedContent = '';
 
 
@@ -307,16 +313,17 @@ const addNote = (text = "", title = "") => {
         
                 newDiv.focus(); 
             }
+            defaultLine = false;
         }
         if (event.key === 'Backspace') {
             const bulletLine = range.commonAncestorContainer.parentNode.closest('.line');
             const currLine = range.commonAncestorContainer;
             const priorLine = bulletLine ? bulletLine.previousElementSibling : null;
-            
             if (!range.collapsed) {
                 event.preventDefault();
                 lastDeletedContent = range.toString();
                 range.deleteContents();
+                console.log("it's about to delete a word");
             } else if (bulletLine) {
                 event.preventDefault();
                 const lineContent = bulletLine.querySelector('.line-content').textContent.trim();
@@ -348,9 +355,17 @@ const addNote = (text = "", title = "") => {
                 }
             }
             if (currLine && range.collapsed) {
-                const priorLine = currLine.previousElementSibling;
+                const priorLine = currLine.parentNode.previousElementSibling;
+                if (currLine.className === "line-content" && defaultLine) {
+                    console.log("it hits content");
+                    event.preventDefault();
+                    return;
+                }
                 if (priorLine) {
-                    this.removeChild(currLine);
+                    if (priorLine.id === "default-line") {
+                        defaultLine = true;
+                    }
+                    this.removeChild(currLine.parentNode);
                     const newRange = document.createRange();
                     const newTextLine = priorLine.querySelector('.line-content') ? priorLine.querySelector('.line-content') : priorLine.parentNode;
                     newRange.selectNodeContents(newTextLine);
@@ -441,7 +456,7 @@ function insertNewBulletPoint(element) {
 
 }
 
-
+// The line thingy is way too complicated, so let's clung them into one function.
 function createNewLine() {
     const newLine = document.createElement('div');
     newLine.classList.add('line');
