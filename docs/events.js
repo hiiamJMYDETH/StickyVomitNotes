@@ -1,19 +1,6 @@
-// events.js
-export default class EventEmitter {
-    constructor() {
-        this.events = {};
-    }
+const {EventEmitter} = require('events');
+const eventEmitter = new EventEmitter();
 
-    on(event, listener) {
-        if (!this.events[event]) {
-            this.events[event] = [];
-        }
-        this.events[event].push(listener);
-    }
+const {contextBridge} = require('electron');
 
-    emit(event, ...args) {
-        if (this.events[event]) {
-            this.events[event].forEach((listener) => listener(...args));
-        }
-    }
-}
+contextBridge.exposeInMainWorld('myEmitter', eventEmitter);

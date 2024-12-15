@@ -15,5 +15,8 @@
     "url": "sticky_vomit_notes"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "electron": "^33.2.1"
+  }
 }

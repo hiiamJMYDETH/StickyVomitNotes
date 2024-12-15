@@ -1,23 +1,18 @@
-var http = require('http');
-var url = require('url');
-var adr = 'http://localhost:8080/default.html';
-var q = parse(adr, true);
+const express = require('express');
+const app = express();
+const {ipcMain} = require('electron');
+const fs = require('fs');
 
-console.log(q.host);
-console.log(q.pathname);
+ipcMain.on('create-file', (event, fileName, content) => {
+  fs.writeFile(fileName, content, (err) => {
+    if (err) {
+      console.error('Error creating file:', err);
+      event.reply('create-file-reply', 'Failed to create file.');
+    } else {
+      console.log(`File "${fileName}" created successfully.`);
+      event.reply('create-file-reply', 'File created successfully.');
+    }
+  });
+});
 
-var fs = require('fs');
-
-http.createServer(function (req, res) {
-    var q = url.parse(req.url, true);
-    var filename = "." + q.pathname;
-    fs.readFile(filename, function(err, data) {
-      if (err) {
-        res.writeHead(404, {'Content-Type': 'text/html'});
-        return res.end("404 Not Found");
-      } 
-      res.writeHead(200, {'Content-Type': 'text/html'});
-      res.write(data);
-      return res.end();
-    });
-  }).listen(8080);
+module.exports = app;

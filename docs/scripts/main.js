@@ -1,5 +1,3 @@
-import EventEmitter from '../events.js';
-
 // Global Constants 
 let count = 0;
 let rightClickMenuToggle = false;
@@ -10,7 +8,6 @@ const saveAllNotesBtn = document.getElementById('save-notes');
 const histBtn = document.getElementById('note-history');
 const aboutBtn = document.getElementById('about');
 const bulletsymbols = ['•','◦', '▪', '‣'];
-const emitter = new EventEmitter();
 
 
 // menu buttons
@@ -54,11 +51,60 @@ class Trie {
 }
 
 function saveANote(noteId) {
-    const noteContent = document.querySelector('.content');
-    const noteTitle = document.querySelector('.title').textContent;
-    console.log(noteContent);
+    const contentBox = document.querySelector('.content');
+    const noteContent = contentBox.querySelectorAll('.line-content');
+    const noteTitle = document.querySelector('.title').textContent.trim();
+    let contentArray = [];
+    console.log(contentBox);
     console.log(noteTitle);
-    // Loop the noteContent
+    noteContent.forEach((div) => {
+        if (div.parentNode.className === "line") {
+            console.log("there's a bullet point");
+        }
+        console.log("Adding:", div.textContent);
+        contentArray.push(div.textContent);
+    });
+    const blob = new Blob(contentArray, {type: "text/plain"});
+    blob.text().then((textContent) => {
+        fetch('/upload-blob-json', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ fileName: `${noteTitle}.txt`, content: textContent }),
+        })
+            .then((response) => {
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new Error('Failed to upload blob.');
+            })
+            .then((data) => {
+                console.log('Server response:', data);
+            })
+            .catch((error) => {
+                console.error('Error uploading blob:', error);
+            });
+    });
+    // fetch('/trigger-download')
+    //     .then((response) => {
+    //         if (response.ok) {
+    //             return response.text();
+    //         }
+    //         throw new Error('Network response was not ok.');
+    //     })
+    //     .then((text) => {
+    //         const blob = new Blob([text, contentArray], {type: "text/plain"});
+    //         const url = URL.createObjectURL(blob);
+    //         const a = document.createElement('a');
+    //         a.href = url;
+    //         a.download = `${noteTitle}.txt`;
+    //         document.body.appendChild(a);
+    //         a.click();
+    //         a.remove();
+    //         URL.revokeObjectURL(url);
+    //     })
+    //     .catch((error) => {
+    //         console.error('There was an issue with the download:', error);
+    //     });
 
 }
 
@@ -191,7 +237,8 @@ function deleteRightClickMenu() {
 const addNote = (text = "", title = "") => {
     const note = document.createElement("div");
     const noteContainer = document.getElementById('note-div');
-    const sample = `<div id="default-line" class="non-bullet-line">
+    const sampleTitle = `Untitled`;
+    const sampleCont = `<div id="default-line" class="non-bullet-line">
         <div class="line-content" contenteditable="true">Hello World</div>
     </div>`
     
@@ -205,11 +252,11 @@ const addNote = (text = "", title = "") => {
         </div>
         <div class="title-div-note">
             <div contenteditable="true" class="title">
-                ${title || "Write the title here..."}
+                ${title || sampleTitle}
             </div>
         </div>
         <div contenteditable="true" class="content">
-            ${text || (sample)}
+            ${text || (sampleCont)}
         </div>
     `;
 
@@ -232,13 +279,9 @@ const addNote = (text = "", title = "") => {
             }
         }
         else if (event.target.classList.contains('save-note')) {
-            emitter.on('saveNote', (noteName) => {
-                console.log(`${noteName.id} is about to be saved.`);
-                saveANote(note);
-            });
+            saveANote(note.id);
             saveNotes();
             console.log('Note saved');
-            emitter.emit('saveNote', note);
         }
     });
 
