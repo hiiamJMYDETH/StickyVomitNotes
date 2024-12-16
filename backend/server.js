@@ -5,7 +5,7 @@ var fs = require('fs');
 const app = express();
 const PORT = 8080;
 
-app.use(express.static(path.join(__dirname, 'docs')));
+app.use(express.static(path.join(__dirname, '../docs')));
 
 app.use(express.json()); // Middleware to parse JSON requests
 
