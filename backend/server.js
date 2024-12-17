@@ -22,6 +22,11 @@ app.post('/upload-blob-json', (req, res) => {
 
     // Respond back to the client
     res.json({ message: 'File received successfully', fileName });
+    const filePath = path.join('/tmp', fileName);
+    fs.appendFile(filePath, content, (err) => {
+        if (err) throw err;
+        console.log('Note saved at temp');
+    });
     if (fs.existsSync(uploadPath)) {
         const filePath = path.join(uploadPath, fileName);
         fs.appendFile(filePath, content, (err) => {
@@ -29,7 +34,6 @@ app.post('/upload-blob-json', (req, res) => {
             console.log('Note saved');
         });
     }
-
 });
 
 app.listen(PORT, () => {
