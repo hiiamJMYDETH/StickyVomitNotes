@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const os = require('os');
 var fs = require('fs');
+const process = require('process');
 const app = express();
 const PORT = 8080;
 
@@ -22,8 +23,8 @@ app.post('/upload-blob-json', (req, res) => {
 
     // Respond back to the client
     res.json({ message: 'File received successfully', fileName });
-    const filePath = path.join('/tmp', fileName);
-    fs.writeFile(filePath, content, (err) => {
+    const tempPath = path.join(os.tmpdir(), fileName);
+    fs.writeFile(tempPath, content, (err) => {
         if (err) throw err;
         console.log('Note saved at temp');
     });
@@ -35,6 +36,23 @@ app.post('/upload-blob-json', (req, res) => {
         });
     }
 });
+
+process.on('exit', (code) => {
+    const tempPath = path.join(os.tmpdir());
+    fs.unlink(tempPath, (err) => {
+        if (err) {
+            console.error('Error deleting file', err);
+        }
+        else {
+            console.log(`File ${tempPath} deleted`);
+        }
+    });
+});
+
+process.on('SIGINT', (code) => {
+    console.log('Caught SIGINT. Exiting gracefully...');
+    process.exit(0);
+})
 
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);
