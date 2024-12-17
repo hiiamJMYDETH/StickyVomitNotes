@@ -64,47 +64,35 @@ function saveANote(noteId) {
         console.log("Adding:", div.textContent);
         contentArray.push(div.textContent);
     });
-    const blob = new Blob(contentArray, {type: "text/plain"});
-    blob.text().then((textContent) => {
-        fetch('/upload-blob-json', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ fileName: `${noteTitle}.txt`, content: textContent }),
-        })
-            .then((response) => {
-                if (response.ok) {
-                    return response.json();
-                }
-                throw new Error('Failed to upload blob.');
-            })
-            .then((data) => {
-                console.log('Server response:', data);
-            })
-            .catch((error) => {
-                console.error('Error uploading blob:', error);
-            });
-    });
-    // fetch('/trigger-download')
-    //     .then((response) => {
-    //         if (response.ok) {
-    //             return response.text();
-    //         }
-    //         throw new Error('Network response was not ok.');
+    const jsonData = {fileName: `${noteTitle}.txt`, content: contentArray};
+    const blob = new Blob([JSON.stringify(jsonData)], {type: "application/json"});
+    fetch('/upload-blob-json', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(jsonData)
+    })
+    .then((response) => response.json())
+    .then((data) => console.log(data))
+    .catch((error) => console.error('Error:', error));
+    // blob.text().then((textContent) => {
+    //     fetch('/upload-blob-json', {
+    //         method: 'POST',
+    //         headers: { 'Content-Type': 'application/json' },
+    //         body: JSON.stringify({ fileName: `${noteTitle}.txt`, content: textContent }),
     //     })
-    //     .then((text) => {
-    //         const blob = new Blob([text, contentArray], {type: "text/plain"});
-    //         const url = URL.createObjectURL(blob);
-    //         const a = document.createElement('a');
-    //         a.href = url;
-    //         a.download = `${noteTitle}.txt`;
-    //         document.body.appendChild(a);
-    //         a.click();
-    //         a.remove();
-    //         URL.revokeObjectURL(url);
-    //     })
-    //     .catch((error) => {
-    //         console.error('There was an issue with the download:', error);
-    //     });
+    //         .then((response) => {
+    //             if (response.ok) {
+    //                 return response.json();
+    //             }
+    //             throw new Error('Failed to upload blob.');
+    //         })
+    //         .then((data) => {
+    //             console.log('Server response:', data);
+    //         })
+    //         .catch((error) => {
+    //             console.error('Error uploading blob:', error);
+    //         });
+    // });
 
 }
 
