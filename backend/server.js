@@ -27,36 +27,40 @@ app.post('/upload-blob-json', (req, res) => {
     console.log('Temp path:', tempPath);
     console.log('Temporary file path:', tempPath);
 
-    fs.writeFile(tempPath, JSON.stringify(content), (err) => {
-        if (err) {
-            console.error('Error writing temporary file', err);
-            return res.status(500).send('Could not create file.');
-        }
-        console.log('File written successfully:', tempPath); // Log success
-    });
+    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+    res.setHeader('Content-Type', 'application/json');
+    res.send(JSON.stringify(content));
 
-    fs.access(tempPath, fs.constants.F_OK, (err) => {
-        if (err) {
-            console.error('File not found after writing:', tempPath);
-            return res.status(404).send('File not found');
-        }
-        console.log('File is ready for download:', tempPath);
-        res.download(tempPath, fileName, (err) => {
-            if (err) {
-                console.error('Error sending file to the client', err);
-            }
-            else {
-                fs.unlink(tempPath, (err) => {
-                    if (err) {
-                        console.error('Error deleting file', err);
-                    }
-                    else {
-                        console.log(`File ${tempPath} deleted`);
-                    }
-                });
-            }
-        });
-    });
+    // fs.writeFile(tempPath, JSON.stringify(content), (err) => {
+    //     if (err) {
+    //         console.error('Error writing temporary file', err);
+    //         return res.status(500).send('Could not create file.');
+    //     }
+    //     console.log('File written successfully:', tempPath); // Log success
+    // });
+
+    // fs.access(tempPath, fs.constants.F_OK, (err) => {
+    //     if (err) {
+    //         console.error('File not found after writing:', tempPath);
+    //         return res.status(404).send('File not found');
+    //     }
+    //     console.log('File is ready for download:', tempPath);
+    //     res.download(tempPath, fileName, (err) => {
+    //         if (err) {
+    //             console.error('Error sending file to the client', err);
+    //         }
+    //         else {
+    //             fs.unlink(tempPath, (err) => {
+    //                 if (err) {
+    //                     console.error('Error deleting file', err);
+    //                 }
+    //                 else {
+    //                     console.log(`File ${tempPath} deleted`);
+    //                 }
+    //             });
+    //         }
+    //     });
+    // });
 
     if (localPath) {
         fs.appendFile(localPath, JSON.stringify(content), (err) => {
