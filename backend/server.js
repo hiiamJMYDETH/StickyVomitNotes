@@ -24,9 +24,10 @@ app.post('/upload-blob-json', (req, res) => {
 
     console.log('File name:', fileName);
     console.log('File content:', content);
+    console.log('Temp path:', tempPath);
 
 
-    fs.appendFile(tempPath, JSON.stringify(content), (err) => {
+    fs.writeFile(tempPath, JSON.stringify(content), (err) => {
         if (err) {
             console.error('Error writing temporary file', err);
             return res.status(500).send('Could not create file.');
