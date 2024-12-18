@@ -15,7 +15,7 @@ app.use(express.json()); // Middleware to parse JSON requests
 app.post('/upload-blob-json', (req, res) => {
     const { fileName, content } = req.body;
     const uploadPath = path.join(os.homedir(), 'Downloads');
-    const tempPath = path.join(os.tmpdir(), fileName);
+    const tempPath = path.join('/tmp', fileName);
     const localPath = path.join(uploadPath, fileName);
     
     if (!fileName || !content) {
@@ -25,7 +25,10 @@ app.post('/upload-blob-json', (req, res) => {
     console.log('File name:', fileName);
     console.log('File content:', content);
     console.log('Temp path:', tempPath);
-
+    console.log('Temporary file path:', tempPath);
+    fs.exists(tempPath, (exists) => {
+        console.log(`Does the file exist? ${exists}`);
+    });
 
     fs.writeFile(tempPath, JSON.stringify(content), (err) => {
         if (err) {

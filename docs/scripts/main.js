@@ -54,7 +54,7 @@ function saveANote(noteId) {
     const contentBox = document.querySelector('.content');
     const noteContent = contentBox.querySelectorAll('.line-content');
     const noteTitle = document.querySelector('.title').textContent.trim();
-    let contentArray = [];
+    let contentArray = "";
     console.log(contentBox);
     console.log(noteTitle);
     noteContent.forEach((div) => {
@@ -65,7 +65,6 @@ function saveANote(noteId) {
         contentArray.push(div.textContent);
     });
     const jsonData = {fileName: `${noteTitle}.txt`, content: contentArray};
-    const blob = new Blob([JSON.stringify(jsonData)], {type: "application/json"});
     fetch('/upload-blob-json', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
