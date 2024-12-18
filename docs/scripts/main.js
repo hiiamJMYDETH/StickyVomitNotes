@@ -86,12 +86,18 @@ function saveANote(noteId) {
                 }
                 throw new Error('Failed to upload blob.');
             })
-            .then((data) => {
-                console.log('Server response:', data);
+            .then((blob) => {
+                // Create a temporary URL for the Blob
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'example.txt'; // Set the downloaded file name
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                URL.revokeObjectURL(url); // Clean up the Blob URL
             })
-            .catch((error) => {
-                console.error('Error uploading blob:', error);
-            });
+            .catch((error) => console.error('Download failed:', error));
     });
 
 }
