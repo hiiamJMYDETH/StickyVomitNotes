@@ -54,7 +54,7 @@ function saveANote(noteId) {
     const contentBox = document.querySelector('.content');
     const noteContent = contentBox.querySelectorAll('.line-content');
     const noteTitle = document.querySelector('.title').textContent.trim();
-    let contentArray = "";
+    let contentArray = [];
     console.log(contentBox);
     console.log(noteTitle);
     noteContent.forEach((div) => {
