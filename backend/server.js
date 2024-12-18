@@ -26,9 +26,6 @@ app.post('/upload-blob-json', (req, res) => {
     console.log('File content:', content);
     console.log('Temp path:', tempPath);
     console.log('Temporary file path:', tempPath);
-    fs.exists(tempPath, (exists) => {
-        console.log(`Does the file exist? ${exists}`);
-    });
 
     fs.writeFile(tempPath, JSON.stringify(content), (err) => {
         if (err) {
@@ -36,19 +33,30 @@ app.post('/upload-blob-json', (req, res) => {
             return res.status(500).send('Could not create file.');
         }
         console.log('File written successfully:', tempPath); // Log success
-        res.download(tempPath, fileName, (err) => {
+        // res.download(tempPath, fileName, (err) => {
+        //     if (err) {
+        //         console.error('Error sending file to the client', err);
+        //     }
+        //     else {
+        //         fs.unlink(tempPath, (err) => {
+        //             if (err) {
+        //                 console.error('Error deleting file', err);
+        //             }
+        //             else {
+        //                 console.log(`File ${tempPath} deleted`);
+        //             }
+        //         });
+        //     }
+        // });
+        res.setHeader('Content-Type', 'application/octet-stream');
+        res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+        res.send(content); // Send the file content directly
+        fs.unlink(tempPath, (err) => {
             if (err) {
-                console.error('Error sending file to the client', err);
+                console.error('Error deleting file', err);
             }
             else {
-                fs.unlink(tempPath, (err) => {
-                    if (err) {
-                        console.error('Error deleting file', err);
-                    }
-                    else {
-                        console.log(`File ${tempPath} deleted`);
-                    }
-                });
+                console.log(`File ${tempPath} deleted`);
             }
         });
     });
