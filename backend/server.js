@@ -33,30 +33,27 @@ app.post('/upload-blob-json', (req, res) => {
             return res.status(500).send('Could not create file.');
         }
         console.log('File written successfully:', tempPath); // Log success
-        // res.download(tempPath, fileName, (err) => {
-        //     if (err) {
-        //         console.error('Error sending file to the client', err);
-        //     }
-        //     else {
-        //         fs.unlink(tempPath, (err) => {
-        //             if (err) {
-        //                 console.error('Error deleting file', err);
-        //             }
-        //             else {
-        //                 console.log(`File ${tempPath} deleted`);
-        //             }
-        //         });
-        //     }
-        // });
-        res.setHeader('Content-Type', 'application/octet-stream');
-        res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
-        res.send(content); // Send the file content directly
-        fs.unlink(tempPath, (err) => {
+    });
+
+    fs.access(tempPath, fs.constants.F_OK, (err) => {
+        if (err) {
+            console.error('File not found after writing:', tempPath);
+            return res.status(404).send('File not found');
+        }
+        console.log('File is ready for download:', tempPath);
+        res.download(tempPath, fileName, (err) => {
             if (err) {
-                console.error('Error deleting file', err);
+                console.error('Error sending file to the client', err);
             }
             else {
-                console.log(`File ${tempPath} deleted`);
+                fs.unlink(tempPath, (err) => {
+                    if (err) {
+                        console.error('Error deleting file', err);
+                    }
+                    else {
+                        console.log(`File ${tempPath} deleted`);
+                    }
+                });
             }
         });
     });
