@@ -7,53 +7,80 @@ const deleteAllNotesBtn = document.getElementById('delete-all-notes');
 const saveAllNotesBtn = document.getElementById('save-notes');
 const histBtn = document.getElementById('note-history');
 const aboutBtn = document.getElementById('about');
+const loginBtn = document.getElementById('login');
+const accountBtn = document.getElementById('account-profile');
 const bulletsymbols = ['•','◦', '▪', '‣'];
+const userData = getGuestMode();
+import {getGuestMode, setGuestMode} from '../utilities.js';
 
 
 // menu buttons
 addBtn.addEventListener('click', function() {
     addNote();
-})
+});
 
 deleteAllNotesBtn.addEventListener('click', function() {
-    const noteContainer = document.getElementById('notes-div');
     for (let i = 0; i < count; i++) {
         const currNote = document.getElementById(`note-${i}`);
         currNote.delete();
     }
     count = 0;
-})
+});
 
 saveAllNotesBtn.addEventListener('click', function() {
     saveNotes();
-})
+});
 
 aboutBtn.addEventListener('click', function() {
-    window.open('about.html', '_blank')
-})
+    window.open('about.html', '_blank');
+});
 
-class TrieNode {
-    constructor(languageName) {
-        if (languageName === 'english') {
-            this.maxChars = 52;
-            this.maxChildren(52);
-            this.isEndOfWord = false;
-        }
-    }
-};
+loginBtn.addEventListener('click', function() {
+    window.open('login.html', '_blank');
+});
 
-class Trie {
-    constructor(languageName) {
-        if (languageName === 'english') {
-            ;
-        }
+accountBtn.addEventListener('click', function() {
+    const accountProf = document.querySelector('.account-container');
+    if (accountProf.style.display === 'none') {
+        accountProf.style.display = 'grid';
+        dragElement(accountProf);
+        return;
     }
+    accountProf.style.display = 'none';
+});
+
+document.getElementById('account-settings').addEventListener('click', function() {
+    console.log('It leads to the page where you can change your email, username, and password');
+});
+
+document.getElementById('logout').addEventListener('click', function() {
+    setGuestMode(true);
+    window.open('index.html', '_blank');
+});
+
+console.log(userData.exists);
+console.log(userData.email);
+if (userData.exists === false) {
+    console.log("There's an account registered");
+    const url = new URL('/account', window.location.origin);
+    url.searchParams.append('email', decodeURIComponent(userData.email))
+    fetch(url) 
+    .then(response => response.json())
+    .then(data => {
+        const accountBtn = document.getElementById('account-profile');
+        loginBtn.style.display = 'none';
+        accountBtn.style.display = 'grid';
+        accountBtn.innerHTML = `${data.username}`;
+    })
+    .catch(err => {
+        console.error('Error fetching account data:', err);
+    });
 }
 
-function saveANote(noteId) {
-    const contentBox = document.querySelector('.content');
+function saveANote(note) {
+    const contentBox = note.querySelector('.content');
     const noteContent = contentBox.querySelectorAll('.line-content');
-    const noteTitle = document.querySelector('.title').textContent.trim();
+    const noteTitle = note.querySelector('.title').textContent.trim();
     let contentArray = [];
     console.log(contentBox);
     console.log(noteTitle);
@@ -64,41 +91,6 @@ function saveANote(noteId) {
         console.log("Adding:", div.textContent);
         contentArray.push(div.textContent);
     });
-    // const jsonData = {fileName: `${noteTitle}.txt`, content: contentArray};
-    const blob = new Blob(contentArray, {type: 'text/plain'});
-    // fetch('/upload-blob-json', {
-    //     method: 'POST',
-    //     headers: {'Content-Type': 'application/json'},
-    //     body: JSON.stringify(jsonData)
-    // })
-    // .then((response) => response.json())
-    // .then((data) => console.log(data))
-    // .catch((error) => console.error('Error:', error));
-    // blob.text().then((textContent) => {
-    //     fetch('/upload-blob-json', {
-    //         method: 'POST',
-    //         headers: { 'Content-Type': 'application/json' },
-    //         body: JSON.stringify({ fileName: `${noteTitle}.txt`, content: textContent }),
-    //     })
-    //         .then((response) => {
-    //             if (response.ok) {
-    //                 return response.json();
-    //             }
-    //             throw new Error('Failed to upload blob.');
-    //         })
-    //         .then((blob) => {
-    //             // Create a temporary URL for the Blob
-    //             const url = URL.createObjectURL(blob);
-    //             const a = document.createElement('a');
-    //             a.href = url;
-    //             a.download = 'example.txt'; // Set the downloaded file name
-    //             document.body.appendChild(a);
-    //             a.click();
-    //             a.remove();
-    //             URL.revokeObjectURL(url); // Clean up the Blob URL
-    //         })
-    //         .catch((error) => console.error('Download failed:', error));
-    // });
     fetch('/upload-blob-json', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -123,7 +115,6 @@ function saveANote(noteId) {
         })
         .catch((error) => console.error('Download failed:', error));
     
-
 }
 
 // saving notes to local storage
@@ -297,7 +288,7 @@ const addNote = (text = "", title = "") => {
             }
         }
         else if (event.target.classList.contains('save-note')) {
-            saveANote(note.id);
+            saveANote(note);
             saveNotes();
             console.log('Note saved');
         }
@@ -349,11 +340,6 @@ const addNote = (text = "", title = "") => {
             }
             else {
                 const newDiv = document.createElement('div');
-                // const br = document.createElement('br');
-                // newDiv.classList.add('non-bullet-line');
-                // br.classList.add('line-content');
-                // br.contentEditable = 'true';
-                // newDiv.appendChild(br);
                 const contentDiv = document.createElement('div');
                 contentDiv.classList.add('line-content');
                 contentDiv.contentEditable = 'true';

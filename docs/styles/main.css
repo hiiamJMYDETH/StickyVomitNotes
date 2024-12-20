@@ -6,11 +6,22 @@ body {
 }
 
 .header {
+    display:flex;
     border-style: solid;
+    justify-content: space-between;
     background-color:rgb(239, 239, 239);
     border: 1px solid black;
     width: 100vw;
     height: 50px;
+}
+
+.account-container {
+    background-color:antiquewhite;
+    padding:10px;
+    border:1px solid black;
+    position:absolute;
+    width: 150px;
+    height: 40px;
 }
 
 .button {
@@ -51,6 +62,16 @@ body {
 
 .add-bulletpoints:hover {
     background-color:blueviolet;
+    color:white;
+}
+
+.login:hover {
+    background-color:green;
+    color:white;
+}
+
+.account-profile:hover {
+    background-color:gold;
     color:white;
 }
 

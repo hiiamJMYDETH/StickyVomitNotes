@@ -1,12 +1,15 @@
 const express = require('express');
 const path = require('path');
-const os = require('os');
-var events = require('events');
-var eventEmitter = new events.EventEmitter();
-var fs = require('fs');
-const process = require('process');
 const app = express();
 const PORT = 8080;
+var mysql = require('mysql2');
+
+var con = mysql.createConnection({
+    host: "localhost",
+    user: "root",
+    password: "Upto2016",
+    database: "mydb"
+});
 
 app.use(express.static(path.join(__dirname, '../docs')));
 
@@ -14,68 +17,80 @@ app.use(express.json()); // Middleware to parse JSON requests
 
 app.post('/upload-blob-json', (req, res) => {
     const { fileName, content } = req.body;
-    const uploadPath = path.join(os.homedir(), 'Downloads');
-    const tempPath = path.join('/tmp', fileName);
-    const localPath = path.join(uploadPath, fileName);
-    
     if (!fileName || !content) {
         return res.status(400).json({ error: 'Invalid file data' });
     }
 
     console.log('File name:', fileName);
     console.log('File content:', content);
-    console.log('Temp path:', tempPath);
-    console.log('Temporary file path:', tempPath);
 
     res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
     res.setHeader('Content-Type', 'application/json');
     res.send(JSON.stringify(content));
-
-    // fs.writeFile(tempPath, JSON.stringify(content), (err) => {
-    //     if (err) {
-    //         console.error('Error writing temporary file', err);
-    //         return res.status(500).send('Could not create file.');
-    //     }
-    //     console.log('File written successfully:', tempPath); // Log success
-    // });
-
-    // fs.access(tempPath, fs.constants.F_OK, (err) => {
-    //     if (err) {
-    //         console.error('File not found after writing:', tempPath);
-    //         return res.status(404).send('File not found');
-    //     }
-    //     console.log('File is ready for download:', tempPath);
-    //     res.download(tempPath, fileName, (err) => {
-    //         if (err) {
-    //             console.error('Error sending file to the client', err);
-    //         }
-    //         else {
-    //             fs.unlink(tempPath, (err) => {
-    //                 if (err) {
-    //                     console.error('Error deleting file', err);
-    //                 }
-    //                 else {
-    //                     console.log(`File ${tempPath} deleted`);
-    //                 }
-    //             });
-    //         }
-    //     });
-    // });
-
-    if (localPath) {
-        fs.appendFile(localPath, JSON.stringify(content), (err) => {
-            if (err) {
-                console.error('Cannot download local file', err);
-                return;
-            }
-            console.log('File written successfully', localPath);
-        })
-    }
 });
 
-process.on('SIGINT', (code) => {
-    console.log('Caught SIGINT. Exiting gracefully...');
-    process.exit(0);
+app.post('/login-json', (req, res) => {
+    const {email, password} = req.body;
+
+    if (!email || !password) {
+        return res.status(400).json({error: 'Missing username/password'});
+    }
+
+    console.log('Email:', email);
+    console.log('Password:', password);
+
+    con.query(
+        'SELECT * FROM users WHERE email = ? AND usr_pwd = ?',
+        [email, password],
+        (err, results) => {
+            if (err) {
+                console.error('Error executing query', err);
+                return res.status(500).json({error: 'Internal server error', details: err.message});
+            }
+            if (results.length === 0) {
+                res.json({message: 'Incorrect/missing information', queryResults: results, logMessage: 'Query was logged on the server'});
+                return;
+            }
+            console.log('Query results:', results);
+            res.json({message: 'Login successful', queryResults: results, logMessage: 'Query was logged on the server'});
+        }
+    );
+});
+
+app.get('/account', (req, res) => {
+    console.log('route /account was called');
+    const email = req.query.email;
+    const query = 'SELECT * FROM users WHERE email = ?';
+    console.log(email);
+
+    con.query(query, [email], (err, results) => {
+        if (err) {
+            console.error('Error executing query', err);
+            res.status(500).send('Database error');
+            return;
+        }
+        res.json(results[0]);
+    });
+});
+
+con.query('SELECT * FROM users;', (err, results) => {
+    if (err) {
+        console.error('Error executing query', err);
+        return;
+    }
+    console.log('Query results', results);
+});
+
+con.connect(function(err) {
+    if (err) throw err;
+    console.log('Connected to mySQL');
+    // con.query('SELECT * FROM users;', (err, results) => {
+    //     if (err) {
+    //         console.error('Error executing query', err);
+    //         return;
+    //     }
+    //     console.log('Query results', results);
+    // });
 })
 
 app.listen(PORT, () => {

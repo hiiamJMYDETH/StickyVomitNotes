@@ -9,23 +9,21 @@
     </head>
     <body id="body">
         <div class="header">
-            <button class="button new-note" id="new-note">New note</button>
-            <button class="button save-all-notes" id="save-notes">Save all notes</button>
-            <button class="button delete-all-notes" id="delete-all-notes">Delete all notes</button>
-            <button class="button history" id="note-history">History</button>
-            <button class="button about-page" id="about">About</button>
-        </div>
-        <div class="change-font-container" id="change-font" style="display:none">
-            <button class="button exit-font-container" onclick="changeFont()">Exit</button>
-            <h1>Change font</h1>
-            <input list="font-options" id="font-family" placeholder="Arial">
-            <datalist id="font-options">
-                <option value="Times New Roman" id="Times-New-Roman"></option>
-                <option value="Arial" id="Arial"></option>
-            </datalist>
-            <button class="button left-align">Align left</button>
-            <button class="button center-align">Align center</button>
-            <button class="button right-align">Align right</button>
+            <div class="edit-tools">
+                <button class="button new-note" id="new-note">New note</button>
+                <button class="button save-all-notes" id="save-notes">Save all notes</button>
+                <button class="button delete-all-notes" id="delete-all-notes">Delete all notes</button>
+                <button class="button history" id="note-history">History</button>
+                <button class="button about-page" id="about">About</button>
+            </div>
+            <div class="user-tools">
+                <button class="button login" id="login">Login</button>
+                <button class="button account-profile" id="account-profile" style="display:none;">Untitled</button>
+                <div class="account-container" style="display:none;">
+                    <button class="button account-settings" id="account-settings">Account settings</button>
+                    <button class="button logout" id="logout">Logout</button>
+                </div>
+            </div>
         </div>
         <div class="note-container" id="note-div">
         </div>

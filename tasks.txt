@@ -1,2 +1,6 @@
 Things to do:
-1. Make a save toggle and have it work like the default save button on Word.
+1. Link to some mysql database to login and track data.
+2. Check history on every mysql database. 
+3. Make autocorrect
+4. Improve save features
+5. Add the upload notes feature. 
