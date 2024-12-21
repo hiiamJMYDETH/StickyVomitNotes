@@ -13,6 +13,8 @@ const bulletsymbols = ['•','◦', '▪', '‣'];
 const userData = getGuestMode();
 import {getGuestMode, setGuestMode} from '../utilities.js';
 
+console.log(userData.email);
+console.log(userData.exists);
 
 // menu buttons
 addBtn.addEventListener('click', function() {
@@ -59,13 +61,19 @@ document.getElementById('logout').addEventListener('click', function() {
 });
 
 
-if (userData.exists === false) {
+if (userData && userData.exists === false) {
     console.log("There's an account registered");
     const url = new URL('/account', window.location.origin);
     url.searchParams.append('email', decodeURIComponent(userData.email))
     fetch(url) 
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
     .then(data => {
+        // console.log('Response from the backend:', data);
         const accountBtn = document.getElementById('account-profile');
         loginBtn.style.display = 'none';
         accountBtn.style.display = 'grid';
