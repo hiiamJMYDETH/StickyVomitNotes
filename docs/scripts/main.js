@@ -58,8 +58,7 @@ document.getElementById('logout').addEventListener('click', function() {
     window.open('index.html', '_blank');
 });
 
-console.log(userData.exists);
-console.log(userData.email);
+
 if (userData.exists === false) {
     console.log("There's an account registered");
     const url = new URL('/account', window.location.origin);
