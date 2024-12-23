@@ -2,18 +2,20 @@ const express = require('express');
 const path = require('path');
 const app = express();
 const PORT = 8080;
-// var mysql = require('mysql2');
+var mysql = require('mysql2');
 require('dotenv').config();
 const {Client} = require('pg');
+let server1Toggle = false;
+let server2Toggle = false;
 
-// var con = mysql.createConnection({
-//     host: process.env.DB2_HOST,
-//     user: process.env.DB2_USER,
-//     password: process.env.DB2_PASSWORD,
-//     database: process.env.DB2_NAME
-// });
+var db1 = mysql.createConnection({
+    host: process.env.DB2_HOST,
+    user: process.env.DB2_USER,
+    password: process.env.DB2_PASSWORD,
+    database: process.env.DB2_NAME
+});
 
-const client = new Client({
+const db2 = new Client({
     host: process.env.DB1_HOST,
     port: process.env.DB1_PORT || 5432,
     user: process.env.DB1_USER,
@@ -22,20 +24,10 @@ const client = new Client({
     ssl: process.env.DB1_SSL === 'true' ? {rejectUnauthorized: false} : false // Use this for Render's default SSL
 });
 
-// (async () => {
-//     try {
-//         await client.connect();
-//         console.log('Connected to PostgreSQL');
-//     } catch (err) {
-//         console.error('Connection error', err.stack);
-//     } finally {
-//         await client.end(); // Always close the connection
-//     }
-// })();
 
 app.use(express.static(path.join(__dirname, '../docs')));
 
-app.use(express.json()); // Middleware to parse JSON requests
+app.use(express.json()); 
 
 app.post('/upload-blob-json', (req, res) => {
     const { fileName, content } = req.body;
@@ -61,39 +53,42 @@ app.post('/login-json', (req, res) => {
     console.log('Email:', email);
     console.log('Password:', password);
 
-    // con.query(
-    //     'SELECT * FROM users WHERE email = ? AND usr_pwd = ?',
-    //     [email, password],
-    //     (err, results) => {
-    //         if (err) {
-    //             console.error('Error executing query', err);
-    //             return res.status(500).json({error: 'Internal server error', details: err.message});
-    //         }
-    //         if (results.length === 0) {
-    //             res.json({message: 'Incorrect/missing information', queryResults: results, logMessage: 'Query was logged on the server'});
-    //             return;
-    //         }
-    //         console.log('Query results:', results);
-    //         res.json({message: 'Login successful', queryResults: results, logMessage: 'Query was logged on the server'});
-    //     }
-    // );
+    if (server1Toggle) {
+        db1.query(
+            'SELECT * FROM users WHERE email = ? AND usr_pwd = ?',
+            [email, password],
+            (err, results) => {
+                if (err) {
+                    console.error('Error executing query', err);
+                    return res.status(500).json({error: 'Internal server error', details: err.message});
+                }
+                if (results.length === 0) {
+                    res.json({message: 'Incorrect/missing information', queryResults: results, logMessage: 'Query was logged on the server'});
+                    return;
+                }
+                console.log('Query results:', results);
+                res.json({message: 'Login successful', queryResults: results, logMessage: 'Query was logged on the server'});
+            }
+        );
+    }
 
-    client.query(
-        'SELECT * FROM users WHERE email = $1 AND pwd = $2;',
-        [email, password],
-        (err, results) => {
-            if (err) {
-                console.error('Error executing query', err);
-                return res.status(500).json({error: 'Internal server error', details: err.message});
+    if (server2Toggle) {
+        db2.query(
+            'SELECT * FROM users WHERE email = $1 AND pwd = $2;',
+            [email, password],
+            (err, results) => {
+                if (err) {
+                    console.error('Error executing query', err);
+                    return res.status(500).json({error: 'Internal server error', details: err.message});
+                }
+                if (results.length === 0) {
+                    res.json({message: 'Incorrect/missing information', queryResults: results, logMessage: 'Query was logged on the server'});
+                    return;
+                }
+                res.json({message: 'Login successful', queryResults: results, logMessage: 'Query was logged on the server'});
             }
-            if (results.length === 0) {
-                res.json({message: 'Incorrect/missing information', queryResults: results, logMessage: 'Query was logged on the server'});
-                return;
-            }
-            // console.log('Query results:', results);
-            res.json({message: 'Login successful', queryResults: results, logMessage: 'Query was logged on the server'});
-        }
-    );
+        );
+    }
 });
 
 app.get('/account', (req, res) => {
@@ -102,78 +97,77 @@ app.get('/account', (req, res) => {
     const query = 'SELECT * FROM users WHERE email = ?';
     console.log(email);
 
-    // con.query(query, [email], (err, results) => {
-    //     if (err) {
-    //         console.error('Error executing query', err);
-    //         res.status(500).send('Database error');
-    //         return;
-    //     }
-    //     res.json(results[0]);
-    // });
+    if (server1Toggle) {
+        db1.query(query, [email], (err, results) => {
+            if (err) {
+                console.error('Error executing query', err);
+                res.status(500).send('Database error');
+                return;
+            }
+            res.json(results[0]);
+        });
+    }
 
-    client.query('SELECT * FROM users WHERE email = $1;', [email], (err, results) => {
-        if (err) {
-            console.error('Error executing query', err);
-            res.status(500).send('Database error');
-            return;
-        }
-        // res.json({message: "There's a user here", queryResults: results, logMessage: 'Query was logged on the server'});
-        res.json(results.rows[0]);
-    });
+    if (server2Toggle) {
+        db2.query('SELECT * FROM users WHERE email = $1;', [email], (err, results) => {
+            if (err) {
+                console.error('Error executing query', err);
+                res.status(500).send('Database error');
+                return;
+            }
+            res.json(results.rows[0]);
+        });
+    }
 });
 
-// con.query('SELECT * FROM users;', (err, results) => {
-//     if (err) {
-//         console.error('Error executing query', err);
-//         return;
-//     }
-//     console.log('Query results', results);
-// });
+function showTables() {
+    if (server1Toggle) {
+        db1.query('SELECT * FROM users;', (err, results) => {
+            if (err) {
+                console.error('Error executing query', err);
+                return;
+            }
+            console.log('Query results', results);
+        });
+    }
 
-// client.query('SELECT * FROM users;', (err, results) => {
-//     if (err) {
-//         console.error('Error executing query', err);
-//         return;
-//     }
-//     console.log('Query results', results);
-// });
+    if (server2Toggle) {
+        db2.query('SELECT * FROM users;', (err, results) => {
+            if (err) {
+                console.error('Error executing query', err);
+                return;
+            }
+            console.log('Query results', results);
+        });
+    }
+}
 
-// con.connect(function(err) {
-//     if (err) throw err;
-//     console.log('Connected to mySQL');
-// });
-
-// client.connect(function(err) {
-//     if (err) {
-//         console.error('Connection error', err);
-//         return;
-//     }
-//     console.log('Connected to postgreSQL');
-// });
-
-client.connect()
-  .then(() => console.log('Connected to Render database!'))
-  .catch(err => console.error('Connection error:', err));
-
-  app.get('/check-env', (req, res) => {
-    const dbConfig = {
-        host: process.env.DB1_HOST,
-        port: process.env.DB1_PORT,
-        user: process.env.DB1_USER,
-        password: process.env.DB1_PASSWORD,
-        database: process.env.DB1_NAME,
-    };
-    console.log('Database Config:', dbConfig); // Logs to Render logs
-    res.json(dbConfig); // Responds with the config
-  });
-
-process.on('SIGSEGV', () => {
-    console.error('Segmentation fault detected. Shutting down gracefully...');
-    client.end();
-    // Perform cleanup if necessary
-    process.exit(1); // Exit the process to avoid undefined behavior
-});
+async function connectToDatabase() {
+    try {
+        await db1.connect();
+        console.log('Connected to db1');
+        server1Toggle = true;
+    }
+    catch (err) {
+        console.error('db1 error', err);
+    }
+    if (server1Toggle) {
+        showTables();
+        return;
+    }
+    try {
+        await db2.connect();
+        console.log('Connected to db2');
+        server2Toggle = true;
+    }
+    catch (err) {
+        console.error('db2 error', err);
+    }
+    showTables();
+}
 
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);
 });
+
+connectToDatabase();

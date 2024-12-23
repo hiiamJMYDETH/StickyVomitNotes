@@ -15,10 +15,10 @@ import {getGuestMode, setGuestMode} from '../utilities.js';
 
 console.log('userData:', userData);
 
-if (userData?.guest) {
-  console.log('Guest mode is active');
+if (userData?.email) {
+  console.log('No email exists');
 } else {
-  console.log('Guest mode is not active');
+  console.log('There exists an email');
 }
 // menu buttons
 addBtn.addEventListener('click', function() {
@@ -111,26 +111,24 @@ function saveANote(note) {
             if (!response.ok) {
                 throw new Error('Network response was not ok.');
             }
-            return response.blob(); // Get the file content as a Blob
+            return response.blob(); 
         })
         .then((blob) => {
-            // Create a temporary URL for the Blob
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `${noteTitle}.txt`; // Set the downloaded file name
+            a.download = `${noteTitle}.txt`; 
             document.body.appendChild(a);
             a.click();
             a.remove();
-            URL.revokeObjectURL(url); // Clean up the Blob URL
+            URL.revokeObjectURL(url); 
         })
         .catch((error) => console.error('Download failed:', error));
     
 }
 
 // saving notes to local storage
-function saveNotes() {
-    // const notes = document.querySelectorAll('.note-box');
+function saveToLocalStorage() {
     const notesContent = document.querySelectorAll('.note-box .content');
     const titles = document.querySelectorAll('.note-box .title');
     const data = [];
@@ -275,7 +273,7 @@ const addNote = (text = "", title = "") => {
                 ${title || sampleTitle}
             </div>
         </div>
-        <div contenteditable="true" class="content">
+        <div contenteditable="false" class="content">
             ${text || (sampleCont)}
         </div>
     `;
@@ -295,12 +293,12 @@ const addNote = (text = "", title = "") => {
             if (currentNote) {
                 currentNote.remove();
                 count--;
-                saveNotes();
+                saveToLocalStorage();
             }
         }
         else if (event.target.classList.contains('save-note')) {
             saveANote(note);
-            saveNotes();
+            saveToLocalStorage();
             console.log('Note saved');
         }
     });
@@ -341,7 +339,7 @@ const addNote = (text = "", title = "") => {
                 }
                 bulletSpan.textContent = newBullet;
             } else {
-                insertTextInContentEditable(this, '\u2003'); // Inserts an em-space
+                insertTab(this, '\u2003'); // Inserts an empty-space
             }
         }
         if (event.key === 'Enter') {
@@ -374,14 +372,14 @@ const addNote = (text = "", title = "") => {
             defaultLine = false;
         }
         if (event.key === 'Backspace') {
-            const bulletLine = range.commonAncestorContainer.parentNode.closest('.line');
+            const bulletLine = range.commonAncestorContainer.parentNode.parentNode.closest('.line');
+            console.log(bulletLine);
             const currLine = range.commonAncestorContainer;
             const priorLine = bulletLine ? bulletLine.previousElementSibling : null;
             if (!range.collapsed) {
                 event.preventDefault();
                 lastDeletedContent = range.toString();
                 range.deleteContents();
-                console.log("it's about to delete a word");
             } else if (bulletLine) {
                 event.preventDefault();
                 const lineContent = bulletLine.querySelector('.line-content').textContent.trim();
@@ -398,11 +396,8 @@ const addNote = (text = "", title = "") => {
                 }
                 if (priorLine && isLineRemoved) {
                     const newRange = document.createRange();
-                    console.log(priorLine);
                     const lineContent = priorLine.querySelector('.line-content');
-                    console.log(priorLine);
                     const newTextLine = lineContent && lineContent.firstChild ? lineContent.firstChild : priorLine; // Currently having an issue with the bulletpoint thing where it focuses on the 
-                    console.log(newTextLine);
                     // const newTextLine = priorLine.querySelector('.line-content').firstChild ? priorLine.querySelector('.line-content').firstChild : priorLine.querySelector('.line-content');
                     newRange.selectNodeContents(newTextLine);
                     newRange.collapse(false);
@@ -412,27 +407,34 @@ const addNote = (text = "", title = "") => {
                     priorLine.focus();
                 }
             }
-            if (currLine && range.collapsed) {
+            else if (currLine && range.collapsed) {
                 const priorLine = currLine.parentNode.previousElementSibling;
-                if (currLine.className === "line-content" && defaultLine) {
-                    console.log("it hits content");
-                    event.preventDefault();
+                if (!priorLine) {
+                    if (currLine.parentNode.parentNode.id === 'default-line') {
+                        console.log("it actually hits content");
+                        defaultLine = true;
+                        return;
+                    }
+                    if (currLine.className === "line-content" && defaultLine) {
+                        console.log("it hits content");
+                        event.preventDefault();
+                        return;
+                    }
+                    if (currLine.length === 0 && defaultLine) {
+                        event.preventDefault();
+                        return;
+                    }
                     return;
                 }
-                if (priorLine) {
-                    if (priorLine.id === "default-line") {
-                        defaultLine = true;
-                    }
-                    this.removeChild(currLine.parentNode);
-                    const newRange = document.createRange();
-                    const newTextLine = priorLine.querySelector('.line-content') ? priorLine.querySelector('.line-content') : priorLine.parentNode;
-                    newRange.selectNodeContents(newTextLine);
-                    newRange.collapse(false);
-    
-                    selection.removeAllRanges();
-                    selection.addRange(newRange);
-                    priorLine.focus();
-                }
+                this.removeChild(currLine.parentNode);
+                const newRange = document.createRange();
+                const newTextLine = priorLine.querySelector('.line-content') ? priorLine.querySelector('.line-content') : priorLine.parentNode;
+                newRange.selectNodeContents(newTextLine);
+                newRange.collapse(false);
+
+                selection.removeAllRanges();
+                selection.addRange(newRange);
+                priorLine.focus();
             }
         }
         
@@ -471,7 +473,7 @@ const addNote = (text = "", title = "") => {
     });
 };
 
-const insertTextInContentEditable = (element, textToInsert) => {
+const insertTab = (element, textToInsert) => {
     // Ensure the contenteditable element is in focus
     element.focus();
 

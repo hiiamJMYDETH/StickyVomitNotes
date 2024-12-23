@@ -4,7 +4,8 @@ export function setGuestMode(bool, emailInfo) {
 }
 
 export function getGuestMode() {
-    return JSON.parse(localStorage.getItem('guestMode'));
+    const user = localStorage.getItem('guestMode');
+    return user ? JSON.parse(user) : null;
 }
 
 
