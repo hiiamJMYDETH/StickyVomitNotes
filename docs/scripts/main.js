@@ -13,9 +13,13 @@ const bulletsymbols = ['•','◦', '▪', '‣'];
 const userData = getGuestMode();
 import {getGuestMode, setGuestMode} from '../utilities.js';
 
-console.log(userData.email);
-console.log(userData.exists);
+console.log('userData:', userData);
 
+if (userData?.guest) {
+  console.log('Guest mode is active');
+} else {
+  console.log('Guest mode is not active');
+}
 // menu buttons
 addBtn.addEventListener('click', function() {
     addNote();
