@@ -1,7 +1,7 @@
 const express = require('express');
 const path = require('path');
 const app = express();
-const PORT = 10000;
+const PORT = 8080;
 // var mysql = require('mysql2');
 require('dotenv').config();
 const {Client} = require('pg');
@@ -14,11 +14,11 @@ const {Client} = require('pg');
 // });
 
 const client = new Client({
-    host: process.env.DB1_HOST,
-    port: process.env.DB1_PORT || 5432,
-    user: process.env.DB1_USER,
+    host: 'dpg-ctjhmcrtq21c73e3afmg-a.oregon-postgres.render.com',
+    port: 5432,
+    user: 'postgre_sql_default_render_k_user',
     password: process.env.DB1_PASSWORD,
-    database: process.env.DB1_NAME,
+    database: 'postgre_sql_default_render_k',
     ssl: process.env.DB1_SSL === 'true' ? {rejectUnauthorized: false} : false // Use this for Render's default SSL
 });
 
@@ -152,14 +152,20 @@ app.get('/account', (req, res) => {
 // });
 
 client.connect()
-  .then(() => console.log('Connected to Render database!', {
-    host: process.env.DB1_HOST,
-    port: process.env.DB1_PORT,
-    user: process.env.DB1_USER,
-    password: process.env.DB1_PASSWORD,
-    database: process.env.DB1_NAME,
-  }))
+  .then(() => console.log('Connected to Render database!'))
   .catch(err => console.error('Connection error:', err));
+
+  app.get('/check-env', (req, res) => {
+    const dbConfig = {
+        host: process.env.DB1_HOST,
+        port: process.env.DB1_PORT,
+        user: process.env.DB1_USER,
+        password: process.env.DB1_PASSWORD,
+        database: process.env.DB1_NAME,
+    };
+    console.log('Database Config:', dbConfig); // Logs to Render logs
+    res.json(dbConfig); // Responds with the config
+  });
 
 process.on('SIGSEGV', () => {
     console.error('Segmentation fault detected. Shutting down gracefully...');
