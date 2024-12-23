@@ -1,7 +1,7 @@
 const express = require('express');
 const path = require('path');
 const app = express();
-const PORT = 8080;
+const PORT = 10000;
 // var mysql = require('mysql2');
 require('dotenv').config();
 const {Client} = require('pg');
@@ -15,7 +15,7 @@ const {Client} = require('pg');
 
 const client = new Client({
     host: process.env.DB1_HOST,
-    port: process.env.DB1_PORT,
+    port: process.env.DB1_PORT || 5432,
     user: process.env.DB1_USER,
     password: process.env.DB1_PASSWORD,
     database: process.env.DB1_NAME,
@@ -152,7 +152,13 @@ app.get('/account', (req, res) => {
 // });
 
 client.connect()
-  .then(() => console.log('Connected to Render database!'))
+  .then(() => console.log('Connected to Render database!', {
+    host: process.env.DB1_HOST,
+    port: process.env.DB1_PORT,
+    user: process.env.DB1_USER,
+    password: process.env.DB1_PASSWORD,
+    database: process.env.DB1_NAME,
+  }))
   .catch(err => console.error('Connection error:', err));
 
 process.on('SIGSEGV', () => {
