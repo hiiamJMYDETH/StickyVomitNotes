@@ -14,12 +14,12 @@ const {Client} = require('pg');
 // });
 
 const client = new Client({
-    host: 'dpg-ctjhmcrtq21c73e3afmg-a.oregon-postgres.render.com',
-    port: 5432,
-    user: 'postgre_sql_default_render_k_user',
+    host: process.env.DB1_HOST,
+    port: process.env.DB1_PORT || 5432,
+    user: process.env.DB1_USER,
     password: process.env.DB1_PASSWORD,
-    database: 'postgre_sql_default_render_k',
-    ssl: {rejectUnauthorized: false} // Use this for Render's default SSL
+    database: process.env.DB1_NAME,
+    ssl: process.env.DB1_SSL === 'true' ? {rejectUnauthorized: false} : false // Use this for Render's default SSL
 });
 
 // (async () => {
