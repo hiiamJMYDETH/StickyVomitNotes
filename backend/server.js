@@ -2,16 +2,16 @@ const express = require('express');
 const path = require('path');
 const app = express();
 const PORT = 8080;
-var mysql = require('mysql2');
+// var mysql = require('mysql2');
 require('dotenv').config();
 const {Client} = require('pg');
 
-var con = mysql.createConnection({
-    host: process.env.DB2_HOST,
-    user: process.env.DB2_USER,
-    password: process.env.DB2_PASSWORD,
-    database: process.env.DB2_NAME
-});
+// var con = mysql.createConnection({
+//     host: process.env.DB2_HOST,
+//     user: process.env.DB2_USER,
+//     password: process.env.DB2_PASSWORD,
+//     database: process.env.DB2_NAME
+// });
 
 const client = new Client({
     host: process.env.DB1_HOST,
