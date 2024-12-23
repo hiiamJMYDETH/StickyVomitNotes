@@ -19,7 +19,7 @@ const client = new Client({
     user: 'postgre_sql_default_render_k_user',
     password: process.env.DB1_PASSWORD,
     database: 'postgre_sql_default_render_k',
-    ssl: process.env.DB1_SSL === 'true' ? {rejectUnauthorized: false} : false // Use this for Render's default SSL
+    ssl: {rejectUnauthorized: false} // Use this for Render's default SSL
 });
 
 // (async () => {
