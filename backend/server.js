@@ -143,18 +143,18 @@ function showTables() {
 }
 
 async function connectToDatabase() {
-    try {
-        await db1.connect();
-        console.log('Connected to db1');
-        server1Toggle = true;
-    }
-    catch (err) {
-        console.error('db1 error', err);
-    }
-    if (server1Toggle) {
-        showTables();
-        return;
-    }
+    // try {
+    //     await db1.connect();
+    //     console.log('Connected to db1');
+    //     server1Toggle = true;
+    // }
+    // catch (err) {
+    //     console.error('db1 error', err);
+    // }
+    // if (server1Toggle) {
+    //     showTables();
+    //     return;
+    // }
     try {
         await db2.connect();
         console.log('Connected to db2');
