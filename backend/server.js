@@ -2,18 +2,19 @@ const express = require('express');
 const path = require('path');
 const app = express();
 const PORT = 8080;
-var mysql = require('mysql2');
+// var mysql = require('mysql2');
 require('dotenv').config();
 const {Client} = require('pg');
 let server1Toggle = false;
 let server2Toggle = false;
 
-var db1 = mysql.createConnection({
-    host: process.env.DB2_HOST,
-    user: process.env.DB2_USER,
-    password: process.env.DB2_PASSWORD,
-    database: process.env.DB2_NAME
-});
+// var db1 = mysql.createConnection({
+//     host: process.env.DB2_HOST,
+//     user: process.env.DB2_USER,
+//     password: process.env.DB2_PASSWORD,
+//     database: process.env.DB2_NAME
+// });
+var db1 = 'blah';
 
 const db2 = new Client({
     host: process.env.DB1_HOST,
