@@ -32,23 +32,26 @@ app.use(express.json());
 
 app.post('/upload-blob-json', (req, res) => {
     const { fileName, content } = req.body;
+    let finalContent = '';
     if (!fileName || !content) {
         return res.status(400).json({ error: 'Invalid file data' });
     }
 
     console.log('File name:', fileName);
     console.log('File content:', content);
+    finalContent = content.join('\n');
+    console.log('final contnent', finalContent);
 
     res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
     res.setHeader('Content-Type', 'application/json');
-    res.send(JSON.stringify(content));
+    res.send(finalContent);
 });
 
 app.post('/login-json', (req, res) => {
     const {email, password} = req.body;
 
     if (!email || !password) {
-        return res.status(400).json({error: 'Missing username/password'});
+        return res.status(400).json({error: 'Missing email/password'});
     }
 
     console.log('Email:', email);
@@ -78,11 +81,12 @@ app.post('/login-json', (req, res) => {
             'SELECT * FROM users WHERE email = $1 AND pwd = $2;',
             [email, password],
             (err, results) => {
+                console.log(results.rows[0]);
                 if (err) {
                     console.error('Error executing query', err);
                     return res.status(500).json({error: 'Internal server error', details: err.message});
                 }
-                if (results.length === 0) {
+                if (results.length === 0 || !results.rows[0]) {
                     res.json({message: 'Incorrect/missing information', queryResults: results, logMessage: 'Query was logged on the server'});
                     return;
                 }
@@ -92,11 +96,44 @@ app.post('/login-json', (req, res) => {
     }
 });
 
+app.post('/add-account-json', (req, res) => {
+    const {name, email, password} = req.body;
+
+    if (!name || !email || !password) {
+        return res.status(400).json({error: 'Missing username/email/password'});
+    }
+
+    const values = [email, name, password];
+    console.log('Name', name);
+    console.log('Email', email);
+    console.log('Password', password);
+
+    if (server1Toggle) {
+        const query = "INSERT IGNORE INTO users (email, username, pwd, creation_date) VALUES (?, ?, ?, CURRENT_DATE)";
+        db1.query(query, values, (err, results) => {
+            if (err) {
+                console.error("Error executing query");
+                return;
+            }
+            res.json({message: 'Successfully created an account', queryResults: results, logMessage: 'Query was created on the server'});
+        });
+    }
+    
+    if (server2Toggle) {
+        const query = "INSERT INTO users (email, username, pwd, creation_date) VALUES ($1, $2, $3, CURRENT_DATE) ON CONFLICT (email) DO NOTHING;";
+        db2.query(query, values, (err, results) => {
+            if (err) {
+                console.error("Error executing query");
+                return;
+            }
+            res.json({message: 'Successfully created an account', queryResults: results, logMessage: 'Query was created on the server'});
+        })
+    }
+});
+
 app.get('/account', (req, res) => {
-    console.log('route /account was called');
     const email = req.query.email;
     const query = 'SELECT * FROM users WHERE email = ?';
-    console.log(email);
 
     if (server1Toggle) {
         db1.query(query, [email], (err, results) => {
@@ -117,6 +154,37 @@ app.get('/account', (req, res) => {
                 return;
             }
             res.json(results.rows[0]);
+        });
+    }
+});
+
+app.post('/change-password', (req, res) => {
+    const {pwd, email} = req.body;
+
+    if (!pwd || !email) {
+        return res.status(400).json({error: 'Missing password'});
+    }
+    const values = [pwd, email];
+    console.log('New password', pwd);
+    console.log('From email', email);
+    if (server1Toggle) {
+        const query = 'UPDATE users SET usr_pwd = ? WHERE email = ?';
+        db1.query(query, values, (err, results) => {
+            if (err) {
+                console.error('Error executing query', err);
+                res.status(500).send('Database error');
+                return;
+            }
+        });
+    }
+    if (server2Toggle) {
+        const query = 'UPDATE users SET pwd = $1 WHERE email = $2';
+        db2.query(query, values, (err, results) => {
+            if (err) {
+                console.error('Error executing query', err);
+                res.status(500).send('Database error');
+                return;
+            }
         });
     }
 });

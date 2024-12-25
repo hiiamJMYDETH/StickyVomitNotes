@@ -24,6 +24,11 @@ body {
     height: 40px;
 }
 
+.settings {
+    width: 300px;
+    height: 130px;
+}
+
 .button {
     height:20px;
     background-color:white;

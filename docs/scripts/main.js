@@ -1,6 +1,7 @@
 // Global Constants 
 let count = 0;
 let rightClickMenuToggle = false;
+let changeAccSettingsToggle = false;
 let originalDivStructure;  
 const addBtn = document.getElementById('new-note');
 const deleteAllNotesBtn = document.getElementById('delete-all-notes');
@@ -9,6 +10,8 @@ const histBtn = document.getElementById('note-history');
 const aboutBtn = document.getElementById('about');
 const loginBtn = document.getElementById('login');
 const accountBtn = document.getElementById('account-profile');
+const saveChanges = document.querySelector('.button.save-account-changes');
+const closeBtn = document.querySelector('.button.close-account-btn');
 const bulletsymbols = ['•','◦', '▪', '‣'];
 const userData = getGuestMode();
 import {getGuestMode, setGuestMode} from '../utilities.js';
@@ -34,7 +37,7 @@ deleteAllNotesBtn.addEventListener('click', function() {
 });
 
 saveAllNotesBtn.addEventListener('click', function() {
-    saveNotes();
+    saveToLocalStorage();
 });
 
 aboutBtn.addEventListener('click', function() {
@@ -56,7 +59,40 @@ accountBtn.addEventListener('click', function() {
 });
 
 document.getElementById('account-settings').addEventListener('click', function() {
-    console.log('It leads to the page where you can change your email, username, and password');
+    const changeAccSettings = document.getElementById('account-settings-cont');
+    if (changeAccSettings.style.display === 'none') {
+        changeAccSettings.style.display = 'grid';
+        dragElement(changeAccSettings);
+        return;
+    }
+    changeAccSettings.style.display = 'none';
+});
+
+saveChanges.addEventListener('click', function() {
+    console.log(document.getElementById('old-pwd').textContent);
+    console.log('Password is about to be changed');
+    fetch('/change-password', {
+        method: 'POST', 
+        headers: {'Content-type': 'application/json'},
+        body: JSON.stringify({pwd: document.getElementById('old-pwd').textContent, email: userData.email})
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Nothing');
+    })
+    .catch(err => {
+        console.error('Error fetching account data:', err);
+    }); 
+});
+
+closeBtn.addEventListener('click', function() {
+    changeAccSettingsToggle = false;
+    document.getElementById('account-settings-cont').style.display = 'none';
 });
 
 document.getElementById('logout').addEventListener('click', function() {
@@ -77,11 +113,13 @@ if (userData && userData.exists === false) {
         return response.json();
     })
     .then(data => {
-        // console.log('Response from the backend:', data);
+        console.log('Response from the backend', data);
         const accountBtn = document.getElementById('account-profile');
         loginBtn.style.display = 'none';
         accountBtn.style.display = 'grid';
         accountBtn.innerHTML = `${data.username}`;
+        document.getElementById('old-pwd').textContent = `${data.pwd}`;        
+        // document.getElementById('old-pwd').textContent = `${data.usr_pwd}`;
     })
     .catch(err => {
         console.error('Error fetching account data:', err);
@@ -97,10 +135,17 @@ function saveANote(note) {
     console.log(noteTitle);
     noteContent.forEach((div) => {
         if (div.parentNode.className === "line") {
-            console.log("there's a bullet point");
+            let indentHelper = '';
+            let indentLevel = (parseInt(div.parentNode.style.marginLeft) / 20) || 0;
+            for (let i = 0; i < indentLevel; i++) {
+                console.log(indentLevel);
+                indentHelper += '\u2003';
+            }
+            contentArray.push(indentHelper + div.previousElementSibling.innerHTML + div.textContent);
         }
-        console.log("Adding:", div.textContent);
-        contentArray.push(div.textContent);
+        else {
+            contentArray.push(div.textContent);
+        }
     });
     fetch('/upload-blob-json', {
         method: 'POST',
@@ -287,9 +332,9 @@ const addNote = (text = "", title = "") => {
 
 
     noteContainer.addEventListener('click', function(event) {
+        const noteId = event.target.getAttribute('data-note-id');
+        const currentNote = document.getElementById(`note-${noteId}`);
         if (event.target.classList.contains('delete-note')) {
-            const noteId = event.target.getAttribute('data-note-id');
-            const currentNote = document.getElementById(`note-${noteId}`);
             if (currentNote) {
                 currentNote.remove();
                 count--;
@@ -297,7 +342,7 @@ const addNote = (text = "", title = "") => {
             }
         }
         else if (event.target.classList.contains('save-note')) {
-            saveANote(note);
+            saveANote(currentNote);
             saveToLocalStorage();
             console.log('Note saved');
         }

@@ -32,16 +32,20 @@
     <body>
         <div class="outer">
             <div class="container" id="login-box">
-                <p id="incorrect-toggle" style="color:red; display:none;">*Incorrect username or password</p>
+                <p id="incorrect-toggle" style="color:red; display:none;">*Incorrect/missing username or password</p>
                 <header>Email</header>
+                <p id="rudimentary-toggle" style="color:red; display:none">*What a nerd?</p>
                 <div class="box text" contenteditable="true" id="email-box"></div>
                 <header>Password</header>
                 <div class="box text" contenteditable="true" id="pwd-box"></div>
                 <button class="button" id="login-button">Login</button>
                 <button class="button" id="create-new-account">Create New Account</button>
+                <button class="button" id="forgot-user-information">Forgot password</button>
             </div>
             <div class="container" id="sign-up-box" style="display:none">
-                <header>First Name</header>
+                <p id="incorrect-toggle-1" style="color:red; display:none;">*Missing username, email, or password</p>
+                <p id="already-used-toggle" style="color:red; display:none;">*This account is already registered. Click on 'I already have an account' and login.</p>
+                <header>Username</header>
                 <div class="box text" contenteditable="true" id="first-name"></div>
                 <header>Email</header>
                 <div class="box text" contenteditable="true" id="login-sign-up"></div>
@@ -59,11 +63,23 @@
             const signUpBtn = document.getElementById('sign-up-button');
             const newAccountBtn = document.getElementById('create-new-account');
             const loginAgainBtn = document.getElementById('login-again');
+            const foPaBtn = document.getElementById('forgot-user-information');
+            const rudToggle = document.getElementById('rudimentary-toggle');
+
+            foPaBtn.addEventListener('click', function(event) {
+                if (rudToggle.style.display === 'grid') {
+                    rudToggle.style.display = 'none';
+                    return;
+                }
+                rudToggle.style.display = 'grid';
+            });
             
             loginBtn.addEventListener('click', function(event) {
-                console.log('Email', emailInfo.textContent.trim());
-                console.log('Password',pwdInfo.textContent.trim());
                 var incorrectToggle = document.getElementById('incorrect-toggle');
+                if (emailInfo.textContent.length === 0 || pwdInfo.textContent.length === 0) {
+                    incorrectToggle.style.display = 'grid';
+                    return;
+                }
                 fetch('/login-json', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
@@ -100,12 +116,41 @@
 
             });
             signUpBtn.addEventListener('click', function(event) {
-                const name = document.getElementById('first-name').textContent.trim();
-                const newEmail = document.getElementById('login-sign-up').textContent.trim();
-                const newPwd = document.getElementById('pwd-sign-up').textContent.trim();
-                console.log('Name:', name);
-                console.log('Email:', newEmail);
-                console.log('Password:', newPwd);
+                const newName = document.getElementById('first-name').textContent;
+                const newEmail = document.getElementById('login-sign-up').textContent;
+                const newPwd = document.getElementById('pwd-sign-up').textContent;
+                var incorrectToggle = document.getElementById('incorrect-toggle-1');
+                if (newName.length === 0 || newEmail.length === 0 || newPwd.length === 0) {
+                    incorrectToggle.style.display = 'grid';
+                    return;
+                }
+                fetch('/add-account-json', {
+                    method: 'POST',
+                    headers: {'Content-type': 'application/json'},
+                    body: JSON.stringify({name: newName, email: newEmail, password: newPwd}),
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! Status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log(data);
+                        if (data.error) {
+                            incorrectToggle.style.display = 'grid';
+                        }
+                        if (data.message === 'Missing username/email/password') {
+                            incorrectToggle.style.display = 'grid';
+                        }
+                        else if (data.message === "Successfully created an account") {
+                            setGuestMode(false, emailInfo.textContent);
+                            window.open('index.html', '_blank');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Fetch or network error:', error.message || error);
+                    }); 
             });
             newAccountBtn.addEventListener('click', function(event) {
                 const signupBox = document.getElementById('sign-up-box');

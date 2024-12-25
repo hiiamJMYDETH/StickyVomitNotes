@@ -13,7 +13,6 @@
                 <button class="button new-note" id="new-note">New note</button>
                 <button class="button save-all-notes" id="save-notes">Save all notes</button>
                 <button class="button delete-all-notes" id="delete-all-notes">Delete all notes</button>
-                <button class="button history" id="note-history">History</button>
                 <button class="button about-page" id="about">About</button>
             </div>
             <div class="user-tools">
@@ -22,6 +21,12 @@
                 <div class="account-container" style="display:none;">
                     <button class="button account-settings" id="account-settings">Account settings</button>
                     <button class="button logout" id="logout">Logout</button>
+                </div>
+                <div class="account-container settings" id="account-settings-cont" style="display:none;">
+                    <h2 style="font-weight:regular;">Account settings</h2>
+                    <div class="line-content" id="old-pwd" contenteditable="true" style="display:grid; background-color: white; border: 1px solid black;">Your new password</div>
+                    <button class="button save-account-changes">Save all changes</button>
+                    <button class="button close-account-btn">Close</button>
                 </div>
             </div>
         </div>
