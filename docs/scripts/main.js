@@ -15,14 +15,15 @@ const guestModeToggle = getGuestMode();
 import {getGuestMode, setGuestMode, Trie} from '../utilities.js';
 const trie = new Trie();
 
-console.log('userData:', guestModeToggle);
+
+// The rest of the commented out ones deal with database issues (due to testing on 2 for cost-saving measures)
 
 if (guestModeToggle?.email) {
   console.log('No email exists');
 } else {
   console.log('There exists an email');
 }
-// menu buttons
+
 addBtn.addEventListener('click', function() {
     addNote();
 });
@@ -406,7 +407,6 @@ const addNote = (text = "", title = "") => {
                 
                 if (!bulletLine) return;
     
-                // Get current indent level
                 let indentLevel = (parseInt(bulletLine.style.marginLeft) / 20) || 0;
                 
                 if (!event.shiftKey) {
@@ -419,7 +419,6 @@ const addNote = (text = "", title = "") => {
                     bulletLine.style.marginLeft = Math.max(0, currentIndent - 20) + 'px';
                 }
     
-                // Update bullet symbol based on indent level
                 const newBullet = bulletsymbols[indentLevel % bulletsymbols.length];
                 let bulletSpan = bulletLine.querySelector('.bullet-point');
                 if (!bulletSpan)  {
@@ -429,7 +428,7 @@ const addNote = (text = "", title = "") => {
                 }
                 bulletSpan.textContent = newBullet;
             } else {
-                insertTab(this, '\u2003'); // Inserts an empty-space
+                insertTab(this, '\u2003'); 
             }
         }
         if (event.key === 'Enter') {
@@ -649,8 +648,7 @@ function replaceTextwithAnother(note, newText) {
     selection.addRange(range);
 }
 
-const insertTab = (element, textToInsert) => {
-    // Ensure the contenteditable element is in focus
+function insertTab(element, textToInsert) {
     element.focus();
 
     const selection = window.getSelection();
@@ -658,18 +656,14 @@ const insertTab = (element, textToInsert) => {
     if (selection.rangeCount > 0) {
         const range = selection.getRangeAt(0);
 
-        // Collapse the range to the cursor position
         range.collapse(true);
 
-        // Create a new text node and insert it at the cursor position
         const textNode = document.createTextNode(textToInsert);
         range.insertNode(textNode);
 
-        // Move the cursor to after the inserted text
         range.setStartAfter(textNode);
         range.collapse(true);
 
-        // Update the selection
         selection.removeAllRanges();
         selection.addRange(range);
     }
@@ -692,7 +686,6 @@ function insertNewBulletPoint(element) {
 
 }
 
-// The line thingy is way too complicated, so let's clung them into one function.
 function createNewLine() {
     const newLine = document.createElement('div');
     newLine.classList.add('line');
@@ -715,7 +708,6 @@ function dragElement(el) {
     let startX, startY;
 
     function dragMouseDown(e) {
-        // Only start drag if the click is outside of the contenteditable area
         if (!e.target.classList.contains("content") && !e.target.classList.contains("line-content") && !e.target.classList.contains("title")) {
             e.preventDefault();
             isDragging = true;
