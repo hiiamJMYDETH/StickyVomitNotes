@@ -1,4 +1,0 @@
-Things to do:
-3. Make autocorrect
-4. Improve save features
-5. Add the upload notes feature. 

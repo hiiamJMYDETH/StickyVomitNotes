@@ -232,7 +232,7 @@ async function connectToDatabase() {
     catch (err) {
         console.error('db2 error', err);
     }
-    showTables();
+    // showTables();
 }
 
 app.listen(PORT, () => {

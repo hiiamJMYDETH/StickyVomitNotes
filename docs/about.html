@@ -4,17 +4,22 @@
         <meta charset="utf-8">
         <meta name="viewpoint" content="width=device-width">
         <title>About</title>
-        <style>
-            body {
-                background-color:antiquewhite;
-                font-family: Arial;
-            }
-        </style>
+        <link rel="stylesheet" href="styles/supp.css">
     </head>
     <body>
-        <h1>About</h1>
-        <p>This open-sourced (whatever that means) web application is a simple note-taking app that saves simple notes to the local storage.</p>
-        <p>Currently, this application cannot be saved on the cloud or on other sources, but it can be saved locally and be reloaded there.</p>
-        <p>This application uses a library.</p>
+        <div class="outer">
+            <div class="container">
+                <h1>About</h1>
+                <p>This application is intended for users to throw ideas on their sticky notes, represented by the 
+                    amount of notes. The user can add bullet points as well. There're some hiccups, particularly
+                    the inability for the user to select anywhere on the text, except within the words, to select 
+                    and continue writing. If the user has an account and logs in, the user can save the notes, 
+                    granted that it's saved to the local storage and the default location is at the downloads
+                    file. 
+                </p>
+                <p>For information about the updates happened, click this button below</p>
+                <button class="button git" onclick="window.location.href='https://github.com/hiiamJMYDETH/StickyVomitNotes';">GitHub</button>
+            </div>
+        </div>
     </body>
 </html>

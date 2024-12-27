@@ -11,11 +11,14 @@
         <div class="header">
             <div class="edit-tools">
                 <button class="button new-note" id="new-note">New note</button>
-                <button class="button save-all-notes" id="save-notes">Save all notes</button>
                 <button class="button delete-all-notes" id="delete-all-notes">Delete all notes</button>
                 <button class="button about-page" id="about">About</button>
             </div>
-            <div class="user-tools">
+            <div class="user-tools" style="display:flex;">
+                <div class="search-container" style="display:block;">
+                    <div class="search-bar" contenteditable="true" style="width: 200px; height: 20px; border: 1px solid black; background-color:white; overflow-y: hidden; overflow-x: hidden;">Don't know where your note is? Search here...</div>
+                    <ul id="search-suggestions" style="display: none; list-style-type: none; padding: 0; margin: 0; background-color: #fff; border: 1px solid #ccc; width: 20%"></ul>
+                </div>
                 <button class="button login" id="login">Login</button>
                 <button class="button account-profile" id="account-profile" style="display:none;">Untitled</button>
                 <div class="account-container" style="display:none;">

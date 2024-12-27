@@ -1,0 +1,34 @@
+body {
+    background-color:antiquewhite;
+    font-family: Arial;
+}
+.outer {
+    display:grid;
+    place-items:center;
+    min-height:100vh;
+}
+.container {
+    background-color:white;
+    border: 1px solid black;
+    padding:10px;
+    display:grid;
+    width:50%;
+}
+.box {
+    display:grid;
+    padding:10px;
+    background-color:white;
+    border:1px solid black;
+}
+.button {
+    height:20px;
+    background-color:white;
+    border: 1px solid black;
+    transition-duration: 0.4s;
+    cursor: pointer;
+}
+
+.git:hover {
+    background-color: purple;
+    color: white;
+}

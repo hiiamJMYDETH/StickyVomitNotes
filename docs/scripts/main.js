@@ -1,24 +1,23 @@
 // Global Constants 
 let count = 0;
 let rightClickMenuToggle = false;
-let changeAccSettingsToggle = false;
 let originalDivStructure;  
 const addBtn = document.getElementById('new-note');
 const deleteAllNotesBtn = document.getElementById('delete-all-notes');
-const saveAllNotesBtn = document.getElementById('save-notes');
-const histBtn = document.getElementById('note-history');
 const aboutBtn = document.getElementById('about');
 const loginBtn = document.getElementById('login');
 const accountBtn = document.getElementById('account-profile');
-const saveChanges = document.querySelector('.button.save-account-changes');
+const saveAccChanges = document.querySelector('.button.save-account-changes');
 const closeBtn = document.querySelector('.button.close-account-btn');
+const searchBar = document.querySelector('.search-bar');
 const bulletsymbols = ['•','◦', '▪', '‣'];
-const userData = getGuestMode();
-import {getGuestMode, setGuestMode} from '../utilities.js';
+const guestModeToggle = getGuestMode();
+import {getGuestMode, setGuestMode, Trie} from '../utilities.js';
+const trie = new Trie();
 
-console.log('userData:', userData);
+console.log('userData:', guestModeToggle);
 
-if (userData?.email) {
+if (guestModeToggle?.email) {
   console.log('No email exists');
 } else {
   console.log('There exists an email');
@@ -34,10 +33,6 @@ deleteAllNotesBtn.addEventListener('click', function() {
         currNote.delete();
     }
     count = 0;
-});
-
-saveAllNotesBtn.addEventListener('click', function() {
-    saveToLocalStorage();
 });
 
 aboutBtn.addEventListener('click', function() {
@@ -68,7 +63,7 @@ document.getElementById('account-settings').addEventListener('click', function()
     changeAccSettings.style.display = 'none';
 });
 
-saveChanges.addEventListener('click', function() {
+saveAccChanges.addEventListener('click', function() {
     console.log(document.getElementById('old-pwd').textContent);
     console.log('Password is about to be changed');
     fetch('/change-password', {
@@ -100,11 +95,56 @@ document.getElementById('logout').addEventListener('click', function() {
     window.open('index.html', '_blank');
 });
 
+searchBar.addEventListener('keyup', function(event) {
+    const suggestedList = document.getElementById('search-suggestions');
+    const selection = window.getSelection();
+    if (selection.rangeCount === 0) return;
+    const range = selection.getRangeAt(0);
+    const currPrefix = getWordInProgress(range);
+    const wordList = trie.autocomplete(currPrefix);
+    if (wordList) {
+        for (let i = 0; i < wordList.length; i++) {
+            const li = document.createElement('li');
+            console.log(wordList[i]);
+            li.textContent = wordList[i];
+            suggestedList.appendChild(li);
+            li.addEventListener('click', function(event) {
+                replaceTextwithAnother(searchBar, wordList[i]);
+                suggestedList.style.display = 'none';
+            })
+        }
+        suggestedList.style.display = 'block';
+    }
+    else {
+        suggestedList.style.display = 'none';
+    }
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        if (count === 0) {
+            return;
+        }
+        for (let i = 0; i < count; i++) {
+            const currNote = document.getElementById(`note-${i}`);
+            const noteTitle = currNote.querySelector('.title');
+            if (noteTitle.textContent.includes(searchBar.textContent)) {
+                currNote.classList.toggle('glowing');
+                currNote.addEventListener('click', function(event) {
+                    if (currNote.classList.contains('glowing')) {
+                        event.preventDefault();
+                        currNote.classList.remove('glowing');
+                    }
+                    return;
+                });
+            }
+        }
+    }
+})
 
-if (userData && userData.exists === false) {
+
+if (guestModeToggle && guestModeToggle.exists === false) {
     console.log("There's an account registered");
     const url = new URL('/account', window.location.origin);
-    url.searchParams.append('email', decodeURIComponent(userData.email))
+    url.searchParams.append('email', decodeURIComponent(guestModeToggle.email))
     fetch(url) 
     .then(response => {
         if (!response.ok) {
@@ -274,9 +314,7 @@ const addRightClickMenu = (text, mouseX, mouseY, note) => {
         else if (event.target.classList.contains('paste')) {
             if (navigator.clipboard) {
                 const copiedText = await navigator.clipboard.readText();
-                const caretPosition = noteContent.selectionStart;
-                const textBeforeCaret = noteContent.value.slice(0, caretPosition);
-                noteContent.value = textBeforeCaret + copiedText + noteContent.value.slice(caretPosition, noteContent.end);
+                replaceTextwithAnother(noteContainer, copiedText);
             }
             else {
                 alert('Clipboard API is not working.');
@@ -321,6 +359,7 @@ const addNote = (text = "", title = "") => {
         <div contenteditable="false" class="content">
             ${text || (sampleCont)}
         </div>
+        <ul id="suggestions" style="display: none; list-style-type: none; padding: 0; margin: 0; background-color: #fff; border: 1px solid #ccc; width: 20%"></ul>
     `;
 
     noteContainer.appendChild(note);
@@ -329,6 +368,9 @@ const addNote = (text = "", title = "") => {
     let enableBulletPoints = false;
     let defaultLine = title ? false : true;
     let lastDeletedContent = '';
+    let currPrefixSequence = [];
+    const noteContent = note.querySelector('.content');
+    const suggestedList = document.getElementById('suggestions');
 
 
     noteContainer.addEventListener('click', function(event) {
@@ -342,13 +384,16 @@ const addNote = (text = "", title = "") => {
             }
         }
         else if (event.target.classList.contains('save-note')) {
+            if (!guestModeToggle || guestModeToggle.exists === true) {
+                alert('If you already have an account, login to save your progress');
+                return;
+            }
             saveANote(currentNote);
             saveToLocalStorage();
             console.log('Note saved');
         }
     });
 
-    const noteContent = note.querySelector('.content');
     noteContent.addEventListener('keydown', function(event) {
         const selection = window.getSelection();
         if (selection.rangeCount === 0) return;
@@ -458,16 +503,13 @@ const addNote = (text = "", title = "") => {
                     if (currLine.parentNode.parentNode.id === 'default-line') {
                         console.log("it actually hits content");
                         defaultLine = true;
-                        return;
                     }
-                    if (currLine.className === "line-content" && defaultLine) {
+                    else if (currLine.className === "line-content" && defaultLine) {
                         console.log("it hits content");
                         event.preventDefault();
-                        return;
                     }
-                    if (currLine.length === 0 && defaultLine) {
+                    else if (currLine.length === 0 && defaultLine) {
                         event.preventDefault();
-                        return;
                     }
                     return;
                 }
@@ -482,7 +524,42 @@ const addNote = (text = "", title = "") => {
                 priorLine.focus();
             }
         }
-        
+        if (event.key === ' ') {
+            const lastFinishedWord = currPrefixSequence[currPrefixSequence.length - 1];
+            if (!lastFinishedWord) {
+                return;
+            }
+            trie.insert(lastFinishedWord);
+        }
+    });
+
+    noteContent.addEventListener('input', function(event) {
+        suggestedList.innerHTML = '';
+        const selection = window.getSelection();
+        if (selection.rangeCount === 0) return;
+        const range = selection.getRangeAt(0);
+        const currPrefix = getWordInProgress(range);
+        const suggestedWords = trie.autocomplete(currPrefix);
+        console.log('word still editing',currPrefix);
+        console.log(suggestedWords);
+        if (suggestedWords) {
+            for (let i = 0; i < suggestedWords.length; i++) {
+                const li = document.createElement('li');
+                console.log(suggestedWords[i]);
+                li.textContent = suggestedWords[i];
+                suggestedList.appendChild(li);
+                li.addEventListener('click', function(event) {
+                    console.log(li.textContent);
+                    replaceTextwithAnother(note, suggestedWords[i]);
+                    suggestedList.style.display = 'none';
+                })
+            }
+            suggestedList.style.display = 'block';
+        }
+        else {
+            suggestedList.style.display = 'none';
+        }
+        currPrefixSequence.push(currPrefix);
     });
 
     noteContent.addEventListener('contextmenu', function(event) {
@@ -517,6 +594,60 @@ const addNote = (text = "", title = "") => {
         }
     });
 };
+
+function getWordInProgress(range) {
+    let string = range.commonAncestorContainer.textContent;
+    let caretPosition = range.startOffset;
+    let left = caretPosition - 1;
+    let right = caretPosition;
+    const stringLength = string.length;
+
+    while ((left >= 0 && string[left] !== ' ') || (right < stringLength && string[right] !== ' ')) {
+        if (left >= 0 && string[left] !== ' ') {
+            left--;
+        }
+        if (right < stringLength && string[right] !== ' ') {
+            right++;
+        }
+    }
+
+    return string.substring(left + 1, right);
+}
+
+function replaceTextwithAnother(note, newText) {
+    note.focus();
+    const selection = window.getSelection();
+    if (selection.rangeCount === 0) return;
+    const range = selection.getRangeAt(0);
+    const string = range.commonAncestorContainer.textContent;
+    const caretPosition = range.startOffset;
+    let left = caretPosition - 1;
+    let right = caretPosition;
+    const stringLength = string.length;
+
+    while ((left >= 0 && string[left] !== ' ') || (right < stringLength && string[right] !== ' ')) {
+        if (left >= 0 && string[left] !== ' ') {
+            left--;
+        }
+        if (right < stringLength && string[right] !== ' ') {
+            right++;
+        }
+    }
+
+    range.setStart(range.startContainer, left+1);
+    range.setEnd(range.endContainer, right);  
+    range.deleteContents();
+
+    const newNode = document.createTextNode(newText);
+
+    range.insertNode(newNode);
+
+    range.setStartAfter(newNode);  
+    range.collapse(true);
+
+    selection.removeAllRanges();
+    selection.addRange(range);
+}
 
 const insertTab = (element, textToInsert) => {
     // Ensure the contenteditable element is in focus
@@ -618,6 +749,9 @@ function dragElement(el) {
 }
 
 function loadNotes() {
+    if (!guestModeToggle || guestModeToggle.exists === true) {
+        return;
+    }
     const titlesData = JSON.parse(localStorage.getItem("titles")) || [];
     const contentData = JSON.parse(localStorage.getItem("notes")) || [];
 
