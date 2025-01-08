@@ -1,8 +1,6 @@
-// WHAT we need in this file?
-// creation of a note and all the stuff relating to notes
 export const bulletsymbols = ['•','◦', '▪', '‣'];
 
-export function getWordInProgress(note) {
+export function getWordInProgress(element) {
     const selection = window.getSelection();
     if (selection.rangeCount === 0) return;
     const range = selection.getRangeAt(0);

@@ -170,3 +170,21 @@ body {
     position: absolute;
     padding: 10px;
 }
+
+.search-bar {
+    width: 200px; 
+    height: 18px; 
+    border: 1px solid black; 
+    background-color:white; 
+    overflow-y: hidden; 
+    overflow-x: hidden;
+}
+
+.search-bar::before {
+    content: "Don't know where your note is? Search here...";
+    color:grey;
+}
+
+.search-bar:focus::before, .search-bar:not(:empty)::before {
+    content: "";
+}

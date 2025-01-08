@@ -481,10 +481,18 @@ searchBar.addEventListener('keyup', function(event) {
                     }
                     return;
                 });
+                suggestedList.style.display = 'none';
             }
         }
     }
 });
+
+document.getElementById('body').addEventListener('click', function(event) {
+    console.log("it's hitting the autoblob");
+    if (document.getElementById('search-suggestions').style.display === 'block') {
+        document.getElementById('search-suggestions').style.display = 'none';
+    }
+})
 
 // Upon loading the application, this one runs
 

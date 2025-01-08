@@ -1,3 +1,5 @@
+import { replaceTextwithAnother } from "./scripts/note.js";
+
 export function setGuestMode(bool, emailInfo) {
     const user = {exists: bool, email: emailInfo}
     localStorage.setItem('guestMode', JSON.stringify(user));
@@ -68,7 +70,6 @@ export class Trie {
     }
 
     autocomplete(prefix) {
-        console.log(prefix);
         const prefixNode = this.searchPrefix(prefix);
         if (!prefixNode || prefix.length < 2) {
             console.log("Prefix node doesn't exist or the prefix is too short");
@@ -118,10 +119,12 @@ export function rightClickMenu(text, mouseX, mouseY, note) {
             window.open(googleSearchUrl, '_blank');
         }
         else if (event.target.classList.contains('cut')) {
-            const caretPosition = noteContent.selectionStart;
             copy(text);
-            const restOfText = noteContent.value.slice(0, caretPosition) + noteContent.value.slice(caretPosition + text.length, noteContent.end);
-            noteContent.value = restOfText;
+            // const caretPosition = noteContent.selectionStart;
+            // copy(text);
+            // const restOfText = noteContent.value.slice(0, caretPosition) + noteContent.value.slice(caretPosition + text.length, noteContent.end);
+            // noteContent.value = restOfText;
+            replaceTextwithAnother(noteContainer, '');
 
         }
         else if (event.target.classList.contains('copy')) {
