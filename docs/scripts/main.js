@@ -98,7 +98,7 @@ function addNote (text = "", title = ""){
                 alert('Login or make an account to save progress.');
                 return;
             }
-            // saveANote(currentNote);
+            saveANote(currentNote);
             saveToLocalStorage();
             console.log('Note saved');
         }
