@@ -120,10 +120,6 @@ export function rightClickMenu(text, mouseX, mouseY, note) {
         }
         else if (event.target.classList.contains('cut')) {
             copy(text);
-            // const caretPosition = noteContent.selectionStart;
-            // copy(text);
-            // const restOfText = noteContent.value.slice(0, caretPosition) + noteContent.value.slice(caretPosition + text.length, noteContent.end);
-            // noteContent.value = restOfText;
             replaceTextwithAnother(noteContainer, '');
 
         }

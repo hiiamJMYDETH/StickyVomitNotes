@@ -105,13 +105,13 @@ function addNote (text = "", title = ""){
         else if (event.target.classList.contains('add-bulletpoints')) {
             if (enableBulletPoints) {
                 enableBulletPoints = false;
-                addBulletPointsBtn.style.background = 'white';
-                addBulletPointsBtn.style.color = 'black';
+                document.querySelector('.add-bulletpoints').style.background = 'white';
+                document.querySelector('.add-bulletpoints').style.color = 'black';
             }
             else {
                 enableBulletPoints = true;
-                addBulletPointsBtn.style.background = 'green';
-                addBulletPointsBtn.style.color = 'white';
+                document.querySelector('.add-bulletpoints').style.background = 'green';
+                document.querySelector('.add-bulletpoints').style.color = 'white';
                 insertNewBulletPoint(noteContent);
             }
         }
