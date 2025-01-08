@@ -1,20 +1,23 @@
+require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const app = express();
 const PORT = 8080;
-// var mysql = require('mysql2');
-require('dotenv').config();
+// const mysql = require('mysql2');
 const {Client} = require('pg');
 let server1Toggle = false;
 let server2Toggle = false;
 
-// var db1 = mysql.createConnection({
+// const db1 = mysql.createConnection({
 //     host: process.env.DB2_HOST,
 //     user: process.env.DB2_USER,
 //     password: process.env.DB2_PASSWORD,
-//     database: process.env.DB2_NAME
+//     database: process.env.DB2_NAME,
 // });
-var db1 = 'blah';
+
+// const db2 = 'blah';
+
+const db1 = 'blah';
 
 const db2 = new Client({
     host: process.env.DB1_HOST,
@@ -37,10 +40,7 @@ app.post('/upload-blob-json', (req, res) => {
         return res.status(400).json({ error: 'Invalid file data' });
     }
 
-    console.log('File name:', fileName);
-    console.log('File content:', content);
     finalContent = content.join('\n');
-    console.log('final contnent', finalContent);
 
     res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
     res.setHeader('Content-Type', 'application/json');
@@ -59,7 +59,7 @@ app.post('/login-json', (req, res) => {
 
     if (server1Toggle) {
         db1.query(
-            'SELECT * FROM users WHERE email = ? AND usr_pwd = ?',
+            'SELECT * FROM users WHERE email = ? AND pwd = ?',
             [email, password],
             (err, results) => {
                 if (err) {
@@ -189,6 +189,64 @@ app.post('/change-password', (req, res) => {
     }
 });
 
+app.post('/store-wordBank', (req, res) => {
+    const {words, email} = req.body;
+    if (!words || !email) {
+        return res.status(400).json({error: "Missing either notes, note styles, or words inputted by the user"});
+    }
+
+    const values = [words, email];
+
+    if (server1Toggle) {
+        const query = 'UPDATE users SET wordBank = ? WHERE email = ?';
+        db1.query(query, values, (err, results) => {
+            if (err) {
+                console.error('Error executing query', err);
+                res.status(500).send('Database error');
+                return;
+            }
+        });
+    }
+    if (server2Toggle) {
+        const query = 'UPDATE users SET wordBank = $1 WHERE email = $2';
+        db2.query(query, values, (err, results) => {
+            if (err) {
+                console.error('Error executing query', err);
+                res.status(500).send('Database error');
+                return;
+            }
+        });
+    }
+});
+
+app.post('/upload-ls-json', (req, res) => {
+    const {notesSaved, titlesSaved, contentsSaved, stylesSaved, email} = req.body;
+    if (!notesSaved || !titlesSaved || !contentsSaved || !stylesSaved || !email) {
+        return res.status(400).json({error: "Missing notes to be saved in database."})
+    }
+    const values = [notesSaved, titlesSaved, contentsSaved, stylesSaved, email];
+    if (server1Toggle) {
+        const query = 'UPDATE users SET notes_saved = ?, note_title_array = ?, note_content_array = ?, note_style_array = ? WHERE email = ?';
+        db1.query(query, values, (err, results) => {
+            if (err) {
+                console.error('Error executing query', err);
+                res.status(500).send('Database error');
+                return;
+            }
+        });
+    }
+    if (server2Toggle) {
+        const query = 'UPDATE users SET notes_saved = $1, note_title_array = $2, note_content_array = $3, note_style_array = $4 WHERE email = $5';
+        db2.query(query, values, (err, results) => {
+            if (err) {
+                console.error('Error executing query', err);
+                res.status(500).send('Database error');
+                return;
+            }
+        });
+    }
+});
+
 function showTables() {
     if (server1Toggle) {
         db1.query('SELECT * FROM users;', (err, results) => {
@@ -221,7 +279,6 @@ async function connectToDatabase() {
     //     console.error('db1 error', err);
     // }
     // if (server1Toggle) {
-    //     showTables();
     //     return;
     // }
     try {
@@ -232,7 +289,7 @@ async function connectToDatabase() {
     catch (err) {
         console.error('db2 error', err);
     }
-    // showTables();
+    showTables();
 }
 
 app.listen(PORT, () => {
