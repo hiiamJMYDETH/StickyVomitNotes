@@ -1,0 +1,1 @@
+1. clone local postgresql from mysql. Use that to clone to an older version of a postgresql database. 

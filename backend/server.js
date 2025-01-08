@@ -198,7 +198,7 @@ app.post('/store-wordBank', (req, res) => {
     const values = [words, email];
 
     if (server1Toggle) {
-        const query = 'UPDATE users SET wordBank = ? WHERE email = ?';
+        const query = 'UPDATE users SET word_bank = ? WHERE email = ?';
         db1.query(query, values, (err, results) => {
             if (err) {
                 console.error('Error executing query', err);
@@ -208,7 +208,7 @@ app.post('/store-wordBank', (req, res) => {
         });
     }
     if (server2Toggle) {
-        const query = 'UPDATE users SET wordBank = $1 WHERE email = $2';
+        const query = 'UPDATE users SET word_bank = $1 WHERE email = $2';
         db2.query(query, values, (err, results) => {
             if (err) {
                 console.error('Error executing query', err);
@@ -289,7 +289,7 @@ async function connectToDatabase() {
     catch (err) {
         console.error('db2 error', err);
     }
-    showTables();
+    // showTables();
 }
 
 app.listen(PORT, () => {
