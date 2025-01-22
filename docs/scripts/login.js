@@ -22,15 +22,17 @@ loginBtn.addEventListener('click', function (event) {
         incorrectToggle.style.display = 'grid';
         return;
     }
+    console.log('Email: ' + emailInfo.textContent + ' password: ' + pwdInfo.value)
     fetch('/login-json', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: emailInfo.textContent, password: pwdInfo.value }),
+        body: JSON.stringify({ email: emailInfo.textContent.trim(), password: pwdInfo.value }),
     })
         .then(response => {
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
+            console.log(response.status)
             return response.json();
         })
         .then(data => {

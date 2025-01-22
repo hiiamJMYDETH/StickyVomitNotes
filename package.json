@@ -2,13 +2,13 @@
   "name": "package",
   "version": "1.0.0",
   "description": "none",
-  "main": "events.js",
+  "main": "server.js",
   "directories": {
     "doc": "docs"
   },
   "scripts": {
-    "test": "module",
-    "start": "node backend/server.js"
+    "devStart": "nodemon backend/server.js",
+    "test": "module"
   },
   "repository": {
     "type": "module",
@@ -17,10 +17,15 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bcrypt": "^5.1.1",
     "dotenv": "^16.4.7",
     "electron": "^33.2.1",
     "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
     "mysql2": "^3.11.5",
     "pg": "^8.13.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
   }
 }

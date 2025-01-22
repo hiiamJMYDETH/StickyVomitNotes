@@ -4,7 +4,6 @@ import { saveANote, replaceTextwithAnother, insertNewBulletPoint, insertTab, bul
 
 let count = 0;
 let rightClickMenuToggle = false;
-let originalDivStructure;  
 const addBtn = document.getElementById('new-note');
 const deleteAllNotesBtn = document.getElementById('delete-all-notes');
 const aboutBtn = document.getElementById('about');
@@ -70,7 +69,7 @@ function addNote (text = "", title = ""){
         <div contenteditable="false" class="content">
             ${text || (sampleCont)}
         </div>
-        <ul id="suggestions" style="display: none; list-style-type: none; padding: 0; margin: 0; background-color: #fff; border: 1px solid #ccc; width: 20%"></ul>
+        <ul id="suggestions" class="suggestions" style="display: none; list-style-type: none; padding: 0; margin: 0; background-color: #fff; border: 1px solid #ccc; width: 20%"></ul>
     `;
 
     noteContainer.appendChild(note);
@@ -80,7 +79,7 @@ function addNote (text = "", title = ""){
     let defaultLine = title ? false : true;
     let currPrefixSequence = [];
     const noteContent = note.querySelector('.content');
-    const suggestedList = document.getElementById('suggestions');
+    const suggestedList = note.querySelector('.suggestions');
 
 
     noteContainer.addEventListener('click', function(event) {
@@ -120,6 +119,7 @@ function addNote (text = "", title = ""){
 
     noteContent.addEventListener('keyup', function(event) {
         suggestedList.innerHTML = '';
+        console.log("note currently editing", this);
         const currPrefix = getWordInProgress(this);
         const suggestedWords = trie.autocomplete(currPrefix);
         console.log('word still editing',currPrefix);
@@ -415,7 +415,7 @@ saveAccChanges.addEventListener('click', function() {
     fetch('/change-password', {
         method: 'POST', 
         headers: {'Content-type': 'application/json'},
-        body: JSON.stringify({pwd: document.getElementById('old-pwd').textContent, email: userData.email})
+        body: JSON.stringify({pwd: document.getElementById('old-pwd').value, email: guestModeToggle.email})
     })
     .then(response => {
         if (!response.ok) {
@@ -432,7 +432,6 @@ saveAccChanges.addEventListener('click', function() {
 });
 
 closeBtn.addEventListener('click', function() {
-    changeAccSettingsToggle = false;
     document.getElementById('account-settings-cont').style.display = 'none';
 });
 
@@ -443,10 +442,7 @@ document.getElementById('logout').addEventListener('click', function() {
 
 searchBar.addEventListener('keyup', function(event) {
     const suggestedList = document.getElementById('search-suggestions');
-    const selection = window.getSelection();
-    if (selection.rangeCount === 0) return;
-    const range = selection.getRangeAt(0);
-    const currPrefix = getWordInProgress(range);
+    const currPrefix = getWordInProgress(this);
     const wordList = trie.autocomplete(currPrefix);
     if (wordList) {
         for (let i = 0; i < wordList.length; i++) {
@@ -492,7 +488,11 @@ document.getElementById('body').addEventListener('click', function(event) {
     if (document.getElementById('search-suggestions').style.display === 'block') {
         document.getElementById('search-suggestions').style.display = 'none';
     }
-})
+});
+
+document.getElementById('old-pwd').addEventListener('click', function() {
+    this.focus();
+});
 
 // Upon loading the application, this one runs
 
@@ -502,6 +502,7 @@ if (!guestModeToggle?.email) {
     console.log('No email exists');
 } 
 else {
+    console.log('It exists')
       const url = new URL('/account', window.location.origin);
       url.searchParams.append('email', decodeURIComponent(guestModeToggle.email))
       fetch(url) 
@@ -517,7 +518,6 @@ else {
           loginBtn.style.display = 'none';
           accountBtn.style.display = 'grid';
           accountBtn.innerHTML = `${data.username}`;
-          document.getElementById('old-pwd').textContent = `${data.pwd}`; 
           setWordBank(data.word_bank);
           titlesData = data.note_title_array;
           contentsData = data.note_content_array;
