@@ -1,5 +1,5 @@
 // Global Constants 
-import { Trie, wordBank, setWordBank, dragElement, rightClickMenu, deleteRightClickMenu } from '../utilities.js';
+import { Trie, wordBank, setWordBank, dragElement, rightClickMenu, deleteRightClickMenu, generateNewNumber } from '../utilities.js';
 import { saveANote, replaceTextwithAnother, insertNewBulletPoint, insertTab, bulletsymbols, getWordInProgress } from './note.js';
 
 let count = 0;
@@ -13,10 +13,12 @@ const saveAccChanges = document.querySelector('.button.save-account-changes');
 const closeBtn = document.querySelector('.button.close-account-btn');
 const searchBar = document.querySelector('.search-bar');
 const trie = new Trie();
-var titlesData = [];
-var contentsData = [];
+let titlesData = [];
+let contentsData = [];
 let noteStylesData = [];
+let noteArray = [];
 const token = localStorage.getItem('token');
+var savedEmail = null;
 
 function loadNotes(max) {
     if (!token) {
@@ -29,7 +31,8 @@ function loadNotes(max) {
 
 function loadSavedStyles() {
     for (let i = 0; i < count; i++) {
-        const noteId = `note-${i}`;
+        // const noteId = `note-${i}`;
+        const noteId = noteArray[i].id;
         const element = document.getElementById(noteId);
         const savedStyles = noteStylesData[i];
 
@@ -54,7 +57,8 @@ function addNote(text = "", title = "") {
     </div>`
 
     note.classList.add("note-box");
-    note.id = `note-${count}`;
+    // note.id = `note-${count}`;
+    note.id = `note-${generateNewNumber(count, noteArray)}`;
     note.innerHTML = `
         <div class="icons">
             <button class="button save-note" data-note-id="${count}">Save note</a>
@@ -74,6 +78,8 @@ function addNote(text = "", title = "") {
 
     noteContainer.appendChild(note);
     dragElement(note);
+    noteArray.push(note);
+    console.log("note array", noteArray);
     count++;
     let enableBulletPoints = false;
     let defaultLine = title ? false : true;
@@ -81,23 +87,21 @@ function addNote(text = "", title = "") {
     const noteContent = note.querySelector('.content');
     const suggestedList = note.querySelector('.suggestions');
 
-
-    noteContainer.addEventListener('click', function (event) {
-        const noteId = event.target.getAttribute('data-note-id');
-        const currentNote = document.getElementById(`note-${noteId}`);
+    note.addEventListener('click', function (event) {
+        this.focus();
         if (event.target.classList.contains('delete-note')) {
-            console.log(currentNote);
-            if (!currentNote) return;
-            noteContainer.removeChild(currentNote);
+            console.log("current note", this);
+            noteArray = noteArray.filter(note => note != this);
+            note.remove();
             count--;
-            saveToLocalStorage;
+            saveToLocalStorage();
         }
         else if (event.target.classList.contains('save-note')) {
-            if (!guestModeToggle || guestModeToggle.exists === true) {
+            if (!token) {
                 alert('Login or make an account to save progress.');
                 return;
             }
-            saveANote(currentNote);
+            saveANote(this);
             saveToLocalStorage();
             console.log('Note saved');
         }
@@ -305,10 +309,16 @@ function addNote(text = "", title = "") {
 // saving notes to local storage
 
 function saveToLocalStorage() {
-    localStorage.setItem('notesSaved', count);
+    titlesData = [];
+    contentsData = [];
+    noteStylesData = [];
+    var saveNoteToggle = false;
     for (let i = 0; i < count; i++) {
-        const noteId = `note-${i}`;
+        // const noteId = `note-${i}`;
+        console.log(noteArray);
+        const noteId = noteArray[i].id;
         const note = document.getElementById(noteId);
+        console.log(noteId);
 
         if (note) {
             const noteContent = note.querySelector('.content');
@@ -321,16 +331,9 @@ function saveToLocalStorage() {
                     styleObject[property] = styles.getPropertyValue(property);
                 }
             }
-            if (titlesData[i] && contentsData[i] && noteStylesData[i]) {
-                titlesData[i] = noteTitle.textContent.trim();
-                contentsData[i] = noteContent.innerHTML;
-                noteStylesData[i] = styleObject;
-            }
-            else {
-                titlesData.push(noteTitle.textContent);
-                contentsData.push(noteContent.innerHTML);
-                noteStylesData.push(styleObject);
-            }
+            titlesData.push(noteTitle.textContent.trim());
+            contentsData.push(noteContent.innerHTML);
+            noteStylesData.push(styleObject);
         }
         else {
             console.log(`Note with ID ${noteId} is not found.`)
@@ -339,7 +342,7 @@ function saveToLocalStorage() {
     fetch('/users/save-local', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ notesSaved: count, titlesSaved: JSON.stringify(titlesData), contentsSaved: JSON.stringify(contentsData), stylesSaved: JSON.stringify(noteStylesData), email: decodeURIComponent(guestModeToggle.email) }),
+        body: JSON.stringify({ notesSaved: count, titlesSaved: JSON.stringify(titlesData), contentsSaved: JSON.stringify(contentsData), stylesSaved: JSON.stringify(noteStylesData), email: savedEmail }),
     })
         .then((response) => {
             if (!response.ok) {
@@ -355,7 +358,7 @@ function saveWordBank() {
     fetch('/users/saveWB', {
         method: 'POST',
         headers: { 'Content-type': 'application/json' },
-        body: JSON.stringify({ words: JSON.stringify(wordBank), email: decodeURIComponent(guestModeToggle.email) })
+        body: JSON.stringify({ words: JSON.stringify(wordBank), email: savedEmail })
     })
         .then((response) => {
             if (!response.ok) {
@@ -415,7 +418,7 @@ saveAccChanges.addEventListener('click', function () {
     fetch('/users/change-password', {
         method: 'POST',
         headers: { 'Content-type': 'application/json' },
-        body: JSON.stringify({ pwd: document.getElementById('old-pwd').value, email: guestModeToggle.email })
+        body: JSON.stringify({ pwd: document.getElementById('old-pwd').value, email: savedEmail })
     })
         .then(response => {
             if (!response.ok) {
@@ -436,7 +439,6 @@ closeBtn.addEventListener('click', function () {
 });
 
 document.getElementById('logout').addEventListener('click', function () {
-    // setGuestMode(true);
     localStorage.removeItem('token');
     window.open('index.html', '_blank');
 });
@@ -518,12 +520,16 @@ fetch(url, {
         loginBtn.style.display = 'none';
         accountBtn.style.display = 'grid';
         accountBtn.innerHTML = `${user.username}`;
-        setWordBank(user.word_bank);
-        titlesData = user.note_title_array;
-        contentsData = user.note_content_array;
-        noteStylesData = user.note_style_array;
+        titlesData = !null ? user.note_title_array : [];
+        contentsData = !null ? user.note_content_array : [];
+        noteStylesData = !null ? user.note_style_array : [];
+        savedEmail = user.email;
         loadNotes(user.notes_saved);
         loadSavedStyles();
+        if (user.word_bank) {
+            setWordBank(user.word_bank);
+        }
+        setWordBank(wordBank);
         for (let i = 0; i < wordBank.length; i++) {
             trie.insert(wordBank[i]);
         }

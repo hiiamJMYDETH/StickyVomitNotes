@@ -21,6 +21,7 @@ function authenticateToken(req, res, next) {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1]
     if (token === null) return res.sendStatus(401);
+    console.log("token", token)
 
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
         if (err) {
@@ -59,6 +60,8 @@ app.post('/api/login', (req,res) => {
         email: email,
         password: password
     }
+
+    console.log(user);
 
     const token = jwt.sign(user, secretKey);
 
@@ -116,8 +119,7 @@ app.post('/users/login', async (req, res) => {
         
         return res.json({
             message: 'Login successful',
-            token: data.token,  
-            user: rows[0]
+            token: data.token
         });
     
     } catch (error) {
@@ -136,31 +138,60 @@ app.post('/users/signup', async (req, res) => {
         }
     
         const values = [email, name, hashedPassword];
-        console.log('Name', name);
-        console.log('Email', email);
-        console.log('Password', hashedPassword);
+        let rows;
 
         if (server1Toggle) {
             const query = "INSERT IGNORE INTO users (email, username, pwd, creation_date) VALUES (?, ?, ?, CURRENT_DATE)";
-            db1.query(query, values, (err, results) => {
-                if (err) {
-                    console.error("Error executing query");
-                    return;
-                }
-                res.json({message: 'Successfully created an account', queryResults: results, logMessage: 'Query was created on the server'});
-            });
+            const result = await db1.execute(query, values);
+            console.log(result);
+            rows = result[0];
         }
-        
-        if (server2Toggle) {
+        else if (server2Toggle) {
             const query = "INSERT INTO users (email, username, pwd, creation_date) VALUES ($1, $2, $3, CURRENT_DATE) ON CONFLICT (email) DO NOTHING;";
-            db2.query(query, values, (err, results) => {
-                if (err) {
-                    console.error("Error executing query");
-                    return;
-                }
-                res.json({message: 'Successfully created an account', queryResults: results, logMessage: 'Query was created on the server'});
-            })
+            const result = await db2.execute(query, values);
         }
+
+        const response = await fetch(`http://localhost:${PORT}/api/login`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email: email, password: hashedPassword })
+        });
+    
+        if (!response.ok) {
+            throw new Error(`Server error! Status: ${response.status}`);
+        }
+    
+        const data = await response.json();
+        console.log('Received token:', data);
+        
+        return res.json({
+            message: 'Successfully created an account',
+            token: data.token
+        });
+
+        // if (server1Toggle) {
+        //     const query = "INSERT IGNORE INTO users (email, username, pwd, creation_date) VALUES (?, ?, ?, CURRENT_DATE)";
+        //     db1.query(query, values, (err, results) => {
+        //         if (err) {
+        //             console.error("Error executing query");
+        //             return;
+        //         }
+        //         res.json({message: 'Successfully created an account', queryResults: results, logMessage: 'Query was created on the server'});
+        //     });
+        // }
+        
+        // if (server2Toggle) {
+        //     const query = "INSERT INTO users (email, username, pwd, creation_date) VALUES ($1, $2, $3, CURRENT_DATE) ON CONFLICT (email) DO NOTHING;";
+        //     db2.query(query, values, (err, results) => {
+        //         if (err) {
+        //             console.error("Error executing query");
+        //             return;
+        //         }
+        //         res.json({message: 'Successfully created an account', queryResults: results, logMessage: 'Query was created on the server'});
+        //     })
+        // }
     }
     catch (error) {
         return res.status(500).send("Error registering user to database");
@@ -173,8 +204,10 @@ app.get('/users', authenticateToken, async (req, res) => {
     try {
         if (server1Toggle) {
             const [results] = await db1.execute(query);
-            console.log(results[0].email === req.user.email)
-            return res.json({ match: results[0].email === req.user.email, user: results[0] });
+            const exists = results.some(user => user.email === req.user.email);
+            const matchedUser = results.find(user => user.email === req.user.email);
+            console.log("exists:", exists);
+            return res.json({ match: exists, user: matchedUser });
         }
         else if (server2Toggle) {
             const results = await db2.execute(query);

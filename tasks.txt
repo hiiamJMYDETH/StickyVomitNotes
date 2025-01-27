@@ -1,2 +1,2 @@
-2. Use JWT to authenticate the user
-3. clone local postgresql from mysql. Use that to clone to an older version of a postgresql database. 
+1. Fix saving feature to have the notes stored as an array instead of saving through identity.
+2. clone local postgresql from mysql. Use that to clone to an older version of a postgresql database. 

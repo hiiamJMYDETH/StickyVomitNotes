@@ -4,6 +4,16 @@ export function setWordBank(bank) {
     wordBank = bank;
 }
 
+export function generateNewNumber(num, noteArray) {
+    for (let i = 0; i < num; i++) {
+        const currNoteId = noteArray[i].id;
+        const currNote = document.getElementById(currNoteId);
+        if (!currNote)
+            return currNoteId;
+    }
+    return num+1;
+}
+
 
 export class TrieNode {
     constructor() {

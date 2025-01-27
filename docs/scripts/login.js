@@ -1,4 +1,4 @@
-import { setGuestMode } from '../utilities.js';
+// import { setGuestMode } from '../utilities.js';
 const emailInfo = document.getElementById('email-box');
 const pwdInfo = document.getElementById('pwd-box');
 const loginBtn = document.getElementById('login-button');
@@ -46,7 +46,7 @@ loginBtn.addEventListener('click', function (event) {
             if (data.message === 'Incorrect/missing information') {
                 incorrectToggle.style.display = 'grid';
             } else if (data.message === 'Login successful') {
-                setGuestMode(false, emailInfo.textContent);
+                // setGuestMode(false, emailInfo.textContent);
                 console.log('Login successful', data.token);
                 localStorage.setItem('token', data.token);
                 window.open('index.html', '_blank');
@@ -88,7 +88,8 @@ signUpBtn.addEventListener('click', function (event) {
                 incorrectToggle.style.display = 'grid';
             }
             else if (data.message === "Successfully created an account") {
-                setGuestMode(false, emailInfo.textContent);
+                // setGuestMode(false, emailInfo.textContent);
+                localStorage.setItem('token', data.token);
                 window.open('index.html', '_blank');
             }
         })
