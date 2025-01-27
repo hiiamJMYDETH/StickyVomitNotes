@@ -1,15 +1,5 @@
 import { replaceTextwithAnother } from "./scripts/note.js";
 
-export function setGuestMode(bool, emailInfo) {
-    const user = {exists: bool, email: emailInfo}
-    localStorage.setItem('guestMode', JSON.stringify(user));
-}
-
-export function getGuestMode() {
-    const user = localStorage.getItem('guestMode');
-    return user ? JSON.parse(user) : null;
-}
-
 export function setWordBank(bank) {
     wordBank = bank;
 }

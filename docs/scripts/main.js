@@ -1,5 +1,5 @@
 // Global Constants 
-import {getGuestMode, setGuestMode, Trie, wordBank, setWordBank, dragElement, rightClickMenu, deleteRightClickMenu} from '../utilities.js';
+import { Trie, wordBank, setWordBank, dragElement, rightClickMenu, deleteRightClickMenu } from '../utilities.js';
 import { saveANote, replaceTextwithAnother, insertNewBulletPoint, insertTab, bulletsymbols, getWordInProgress } from './note.js';
 
 let count = 0;
@@ -12,14 +12,14 @@ const accountBtn = document.getElementById('account-profile');
 const saveAccChanges = document.querySelector('.button.save-account-changes');
 const closeBtn = document.querySelector('.button.close-account-btn');
 const searchBar = document.querySelector('.search-bar');
-const guestModeToggle = getGuestMode();
 const trie = new Trie();
 var titlesData = [];
 var contentsData = [];
 let noteStylesData = [];
+const token = localStorage.getItem('token');
 
 function loadNotes(max) {
-    if (!guestModeToggle || guestModeToggle.exists === true) {
+    if (!token) {
         return;
     }
     for (let i = 0; i < max; i++) {
@@ -32,10 +32,10 @@ function loadSavedStyles() {
         const noteId = `note-${i}`;
         const element = document.getElementById(noteId);
         const savedStyles = noteStylesData[i];
-    
+
         if (savedStyles && element) {
             const styleObject = savedStyles;
-    
+
             for (let property in styleObject) {
                 element.style[property] = styleObject[property];
             }
@@ -45,14 +45,14 @@ function loadSavedStyles() {
     }
 }
 
-function addNote (text = "", title = ""){
+function addNote(text = "", title = "") {
     const note = document.createElement("div");
     const noteContainer = document.getElementById('note-div');
     const sampleTitle = `Untitled`;
     const sampleCont = `<div id="default-line" class="non-bullet-line">
         <div class="line-content" contenteditable="true">Hello World</div>
     </div>`
-    
+
     note.classList.add("note-box");
     note.id = `note-${count}`;
     note.innerHTML = `
@@ -82,7 +82,7 @@ function addNote (text = "", title = ""){
     const suggestedList = note.querySelector('.suggestions');
 
 
-    noteContainer.addEventListener('click', function(event) {
+    noteContainer.addEventListener('click', function (event) {
         const noteId = event.target.getAttribute('data-note-id');
         const currentNote = document.getElementById(`note-${noteId}`);
         if (event.target.classList.contains('delete-note')) {
@@ -117,12 +117,12 @@ function addNote (text = "", title = ""){
     });
 
 
-    noteContent.addEventListener('keyup', function(event) {
+    noteContent.addEventListener('keyup', function (event) {
         suggestedList.innerHTML = '';
         console.log("note currently editing", this);
         const currPrefix = getWordInProgress(this);
         const suggestedWords = trie.autocomplete(currPrefix);
-        console.log('word still editing',currPrefix);
+        console.log('word still editing', currPrefix);
         console.log(suggestedWords);
         if (suggestedWords) {
             for (let i = 0; i < suggestedWords.length; i++) {
@@ -130,7 +130,7 @@ function addNote (text = "", title = ""){
                 console.log(suggestedWords[i]);
                 li.textContent = suggestedWords[i];
                 suggestedList.appendChild(li);
-                li.addEventListener('click', function(event) {
+                li.addEventListener('click', function (event) {
                     console.log(li.textContent);
                     replaceTextwithAnother(note, suggestedWords[i]);
                     suggestedList.style.display = 'none';
@@ -144,20 +144,20 @@ function addNote (text = "", title = ""){
         currPrefixSequence.push(currPrefix);
     });
 
-    noteContent.addEventListener('keydown', function(event) {
+    noteContent.addEventListener('keydown', function (event) {
         const selection = window.getSelection();
         if (selection.rangeCount === 0) return;
         const range = selection.getRangeAt(0);
         if (event.key === 'Tab') {
             event.preventDefault();
-            
+
             if (enableBulletPoints) {
-                const bulletLine = range.commonAncestorContainer.parentNode.closest('.line'); 
-                
+                const bulletLine = range.commonAncestorContainer.parentNode.closest('.line');
+
                 if (!bulletLine) return;
-    
+
                 let indentLevel = (parseInt(bulletLine.style.marginLeft) / 20) || 0;
-                
+
                 if (!event.shiftKey) {
                     if (indentLevel === bulletsymbols.length - 1) return;
                     indentLevel++;
@@ -167,17 +167,17 @@ function addNote (text = "", title = ""){
                     const currentIndent = parseInt(bulletLine.style.marginLeft) || 0;
                     bulletLine.style.marginLeft = Math.max(0, currentIndent - 20) + 'px';
                 }
-    
+
                 const newBullet = bulletsymbols[indentLevel % bulletsymbols.length];
                 let bulletSpan = bulletLine.querySelector('.bullet-point');
-                if (!bulletSpan)  {
+                if (!bulletSpan) {
                     bulletSpan = document.createElement('span');
                     bulletSpan.classList.add('bullet-point');
                     bulletLine.prepend(bulletSpan);
                 }
                 bulletSpan.textContent = newBullet;
             } else {
-                insertTab(this, '\u2003'); 
+                insertTab(this, '\u2003');
             }
         }
         if (event.key === 'Enter') {
@@ -194,18 +194,18 @@ function addNote (text = "", title = ""){
                 newDiv.classList.add('non-bullet-line');
                 contentDiv.appendChild(br);
                 newDiv.appendChild(contentDiv);
-        
+
                 this.appendChild(newDiv);
-        
+
                 const range = document.createRange();
                 const selection = window.getSelection();
-                range.setStart(newDiv.querySelector('.line-content'), 0); 
+                range.setStart(newDiv.querySelector('.line-content'), 0);
                 range.collapse(true);
-                
+
                 selection.removeAllRanges();
                 selection.addRange(range);
-        
-                newDiv.focus(); 
+
+                newDiv.focus();
             }
             defaultLine = false;
         }
@@ -239,7 +239,7 @@ function addNote (text = "", title = ""){
                     const newTextLine = lineContent && lineContent.firstChild ? lineContent.firstChild : priorLine;
                     newRange.selectNodeContents(newTextLine);
                     newRange.collapse(false);
-    
+
                     selection.removeAllRanges();
                     selection.addRange(newRange);
                     priorLine.focus();
@@ -282,7 +282,7 @@ function addNote (text = "", title = ""){
         }
     });
 
-    noteContent.addEventListener('contextmenu', function(event) {
+    noteContent.addEventListener('contextmenu', function (event) {
         event.preventDefault();
         const selectedText = window.getSelection().toString();
         if (selectedText) {
@@ -294,7 +294,7 @@ function addNote (text = "", title = ""){
         }
     });
 
-    noteContent.addEventListener('click', function(event) {
+    noteContent.addEventListener('click', function (event) {
         if (rightClickMenuToggle) {
             deleteRightClickMenu();
             rightClickMenuToggle = false;
@@ -336,26 +336,26 @@ function saveToLocalStorage() {
             console.log(`Note with ID ${noteId} is not found.`)
         }
     }
-    fetch('/upload-ls-json', {
+    fetch('/users/save-local', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({notesSaved: count, titlesSaved: JSON.stringify(titlesData), contentsSaved: JSON.stringify(contentsData), stylesSaved: JSON.stringify(noteStylesData), email: decodeURIComponent(guestModeToggle.email)}),
+        body: JSON.stringify({ notesSaved: count, titlesSaved: JSON.stringify(titlesData), contentsSaved: JSON.stringify(contentsData), stylesSaved: JSON.stringify(noteStylesData), email: decodeURIComponent(guestModeToggle.email) }),
     })
         .then((response) => {
             if (!response.ok) {
                 throw new Error('Network response was not ok.');
             }
-            return response.blob(); 
+            return response.blob();
         })
         .catch((error) => console.error('Upload failed:', error));
-        saveWordBank();
+    saveWordBank();
 }
 
 function saveWordBank() {
-    fetch('/store-wordBank', {
+    fetch('/users/saveWB', {
         method: 'POST',
-        headers: {'Content-type': 'application/json'},
-        body: JSON.stringify({words: JSON.stringify(wordBank), email: decodeURIComponent(guestModeToggle.email)})
+        headers: { 'Content-type': 'application/json' },
+        body: JSON.stringify({ words: JSON.stringify(wordBank), email: decodeURIComponent(guestModeToggle.email) })
     })
         .then((response) => {
             if (!response.ok) {
@@ -367,11 +367,11 @@ function saveWordBank() {
 
 // Functions related to menu buttons
 
-addBtn.addEventListener('click', function() {
+addBtn.addEventListener('click', function () {
     addNote();
 });
 
-deleteAllNotesBtn.addEventListener('click', function() {
+deleteAllNotesBtn.addEventListener('click', function () {
     for (let i = 0; i < count; i++) {
         const currNote = document.getElementById(`note-${i}`);
         if (currNote) {
@@ -381,15 +381,15 @@ deleteAllNotesBtn.addEventListener('click', function() {
     count = 0;
 });
 
-aboutBtn.addEventListener('click', function() {
+aboutBtn.addEventListener('click', function () {
     window.open('about.html', '_blank');
 });
 
-loginBtn.addEventListener('click', function() {
+loginBtn.addEventListener('click', function () {
     window.open('login.html', '_blank');
 });
 
-accountBtn.addEventListener('click', function() {
+accountBtn.addEventListener('click', function () {
     const accountProf = document.querySelector('.account-container');
     if (accountProf.style.display === 'none') {
         accountProf.style.display = 'grid';
@@ -399,7 +399,7 @@ accountBtn.addEventListener('click', function() {
     accountProf.style.display = 'none';
 });
 
-document.getElementById('account-settings').addEventListener('click', function() {
+document.getElementById('account-settings').addEventListener('click', function () {
     const changeAccSettings = document.getElementById('account-settings-cont');
     if (changeAccSettings.style.display === 'none') {
         changeAccSettings.style.display = 'grid';
@@ -409,38 +409,39 @@ document.getElementById('account-settings').addEventListener('click', function()
     changeAccSettings.style.display = 'none';
 });
 
-saveAccChanges.addEventListener('click', function() {
+saveAccChanges.addEventListener('click', function () {
     console.log(document.getElementById('old-pwd').textContent);
     console.log('Password is about to be changed');
-    fetch('/change-password', {
-        method: 'POST', 
-        headers: {'Content-type': 'application/json'},
-        body: JSON.stringify({pwd: document.getElementById('old-pwd').value, email: guestModeToggle.email})
+    fetch('/users/change-password', {
+        method: 'POST',
+        headers: { 'Content-type': 'application/json' },
+        body: JSON.stringify({ pwd: document.getElementById('old-pwd').value, email: guestModeToggle.email })
     })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-    })
-    .then(data => {
-        console.log('Nothing');
-    })
-    .catch(err => {
-        console.error('Error fetching account data:', err);
-    }); 
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Nothing');
+        })
+        .catch(err => {
+            console.error('Error fetching account data:', err);
+        });
 });
 
-closeBtn.addEventListener('click', function() {
+closeBtn.addEventListener('click', function () {
     document.getElementById('account-settings-cont').style.display = 'none';
 });
 
-document.getElementById('logout').addEventListener('click', function() {
-    setGuestMode(true);
+document.getElementById('logout').addEventListener('click', function () {
+    // setGuestMode(true);
+    localStorage.removeItem('token');
     window.open('index.html', '_blank');
 });
 
-searchBar.addEventListener('keyup', function(event) {
+searchBar.addEventListener('keyup', function (event) {
     const suggestedList = document.getElementById('search-suggestions');
     const currPrefix = getWordInProgress(this);
     const wordList = trie.autocomplete(currPrefix);
@@ -450,7 +451,7 @@ searchBar.addEventListener('keyup', function(event) {
             console.log(wordList[i]);
             li.textContent = wordList[i];
             suggestedList.appendChild(li);
-            li.addEventListener('click', function(event) {
+            li.addEventListener('click', function (event) {
                 replaceTextwithAnother(searchBar, wordList[i]);
                 suggestedList.style.display = 'none';
             })
@@ -470,7 +471,7 @@ searchBar.addEventListener('keyup', function(event) {
             const noteTitle = currNote.querySelector('.title');
             if (noteTitle.textContent.includes(searchBar.textContent)) {
                 currNote.classList.toggle('glowing');
-                currNote.addEventListener('click', function(event) {
+                currNote.addEventListener('click', function (event) {
                     if (currNote.classList.contains('glowing')) {
                         event.preventDefault();
                         currNote.classList.remove('glowing');
@@ -483,52 +484,50 @@ searchBar.addEventListener('keyup', function(event) {
     }
 });
 
-document.getElementById('body').addEventListener('click', function(event) {
+document.getElementById('body').addEventListener('click', function (event) {
     console.log("it's hitting the autoblob");
     if (document.getElementById('search-suggestions').style.display === 'block') {
         document.getElementById('search-suggestions').style.display = 'none';
     }
 });
 
-document.getElementById('old-pwd').addEventListener('click', function() {
+document.getElementById('old-pwd').addEventListener('click', function () {
     this.focus();
 });
 
 // Upon loading the application, this one runs
 
-console.log(guestModeToggle?.email);
-
-if (!guestModeToggle?.email) {
-    console.log('No email exists');
-} 
-else {
-    console.log('It exists')
-      const url = new URL('/account', window.location.origin);
-      url.searchParams.append('email', decodeURIComponent(guestModeToggle.email))
-      fetch(url) 
-      .then(response => {
-          if (!response.ok) {
-              throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          return response.json();
-      })
-      .then(data => {
-          console.log('Response from the backend', data);
-          const accountBtn = document.getElementById('account-profile');
-          loginBtn.style.display = 'none';
-          accountBtn.style.display = 'grid';
-          accountBtn.innerHTML = `${data.username}`;
-          setWordBank(data.word_bank);
-          titlesData = data.note_title_array;
-          contentsData = data.note_content_array;
-          noteStylesData = data.note_style_array;
-          loadNotes(data.notes_saved);
-          loadSavedStyles();
-          for (let i = 0; i < wordBank.length; i++) {
-              trie.insert(wordBank[i]);
-          }
-      })
-      .catch(err => {
-          console.error('Error fetching account data:', err);
-      });
-}
+const url = new URL('/users', window.location.origin);
+fetch(url, {
+    method: 'GET',
+    headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-type': 'application/json'
+    }
+})
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Response from the backend', data.user);
+        const user = data.user;
+        const accountBtn = document.getElementById('account-profile');
+        loginBtn.style.display = 'none';
+        accountBtn.style.display = 'grid';
+        accountBtn.innerHTML = `${user.username}`;
+        setWordBank(user.word_bank);
+        titlesData = user.note_title_array;
+        contentsData = user.note_content_array;
+        noteStylesData = user.note_style_array;
+        loadNotes(user.notes_saved);
+        loadSavedStyles();
+        for (let i = 0; i < wordBank.length; i++) {
+            trie.insert(wordBank[i]);
+        }
+    })
+    .catch(err => {
+        console.error('Error fetching account data:', err);
+    });

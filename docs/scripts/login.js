@@ -22,8 +22,7 @@ loginBtn.addEventListener('click', function (event) {
         incorrectToggle.style.display = 'grid';
         return;
     }
-    console.log('Email: ' + emailInfo.textContent + ' password: ' + pwdInfo.value)
-    fetch('/login-json', {
+    fetch('/users/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: emailInfo.textContent.trim(), password: pwdInfo.value }),
@@ -48,7 +47,8 @@ loginBtn.addEventListener('click', function (event) {
                 incorrectToggle.style.display = 'grid';
             } else if (data.message === 'Login successful') {
                 setGuestMode(false, emailInfo.textContent);
-                console.log('Login successful');
+                console.log('Login successful', data.token);
+                localStorage.setItem('token', data.token);
                 window.open('index.html', '_blank');
             } else {
                 console.error('Unexpected response:', data);
@@ -68,7 +68,7 @@ signUpBtn.addEventListener('click', function (event) {
         incorrectToggle.style.display = 'grid';
         return;
     }
-    fetch('/add-account-json', {
+    fetch('/users/signup', {
         method: 'POST',
         headers: { 'Content-type': 'application/json' },
         body: JSON.stringify({ name: newName, email: newEmail, password: newPwd }),
