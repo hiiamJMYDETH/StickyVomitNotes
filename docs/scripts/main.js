@@ -514,7 +514,7 @@ fetch(url, {
         return response.json();
     })
     .then(data => {
-        console.log('Response from the backend', data.user);
+        if (!data.user) return;
         const user = data.user;
         const accountBtn = document.getElementById('account-profile');
         loginBtn.style.display = 'none';
