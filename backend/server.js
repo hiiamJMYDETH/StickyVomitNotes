@@ -261,15 +261,16 @@ app.post('/users/save-local', async (req, res) => {
 });
 
 const pool = new Pool({
-    host: process.env.DB1_HOST,
-    port: process.env.DB1_PORT || 5432,
-    user: process.env.DB1_USER,
-    password: process.env.DB1_PASSWORD,
-    database: process.env.DB1_NAME,
-    ssl: process.env.DB1_SSL === 'true' ? { rejectUnauthorized: false } : false,
-    max: 10, // max number of clients in the pool (adjust as needed)
-    idleTimeoutMillis: 30000, // Close idle connections after 30 seconds
-    connectionTimeoutMillis: 2000 // Max time to wait for a new connection
+    // host: process.env.DB1_HOST,
+    // port: process.env.DB1_PORT || 5432,
+    // user: process.env.DB1_USER,
+    // password: process.env.DB1_PASSWORD,
+    // database: process.env.DB1_NAME,
+    // ssl: process.env.DB1_SSL === 'true' ? { rejectUnauthorized: false } : false,
+    // max: 10, // max number of clients in the pool (adjust as needed)
+    // idleTimeoutMillis: 30000, // Close idle connections after 30 seconds
+    // connectionTimeoutMillis: 2000 // Max time to wait for a new connection
+    connectionString: process.env.DATABASE_URL
 });
 
 async function connectToDatabase() {
