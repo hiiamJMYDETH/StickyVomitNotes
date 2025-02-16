@@ -500,6 +500,7 @@ document.getElementById('old-pwd').addEventListener('click', function () {
 // Upon loading the application, this one runs
 
 const url = new URL('/users', window.location.origin);
+console.log("url,", url);
 fetch(url, {
     method: 'GET',
     headers: {
@@ -535,5 +536,6 @@ fetch(url, {
         }
     })
     .catch(err => {
+        console.log("url,", url);
         console.error('Error fetching account data:', err);
     });

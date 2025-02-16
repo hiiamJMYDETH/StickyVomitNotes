@@ -100,7 +100,7 @@ app.post('/users/login', async (req, res) => {
             });
         }
     
-        const response = await fetch(`http://localhost:${PORT}/api/login`, {
+        const response = await fetch(`https://sticky-vomit-notes-xji9.vercel.app/users/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -186,6 +186,7 @@ app.get('/users', authenticateToken, async (req, res) => {
             const results = await db2.query(query);
             const exists = results.rows.some(user => user.email === req.user.email);
             const matchedUser = results.rows.find(user => user.email === req.user.email);
+            console.log("At least it's running fine");
             return res.json({match: exists, user: matchedUser});
         }
     }
