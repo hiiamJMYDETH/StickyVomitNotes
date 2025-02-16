@@ -4,18 +4,14 @@ const path = require('path');
 const app = express();
 const bcrypt = require('bcrypt');
 const PORT = 8080;
-const mysql = require('mysql2/promise');
 const jwt = require('jsonwebtoken');
 const secretKey = process.env.ACCESS_TOKEN_SECRET;
 const { hash } = require('crypto');
-const {Pool} = require('pg');
-let server1Toggle = false;
-let server2Toggle = false;
+const {Client} = require('pg');
 
-let db1, db2;
+let db2;
 // db2 = 'blah';
 
-db1 = 'blah';
 
 function authenticateToken(req, res, next) {
     const authHeader = req.headers['authorization'];
@@ -76,15 +72,9 @@ app.post('/users/login', async (req, res) => {
 
     try {
         let rows;
-        
-        if (server1Toggle) {
-            const result = await db1.execute('SELECT * FROM users WHERE email = ?;', [email]);
-            rows = result[0];
-        } 
-        else if (server2Toggle) {
+
             const result = await db2.query('SELECT * FROM users WHERE email = $1;', [email]);
             rows = result.rows || result[0]; 
-        }
     
         if (!rows || rows.length === 0) {
             console.log('User not found');
@@ -138,16 +128,10 @@ app.post('/users/signup', async (req, res) => {
         const values = [email, name, hashedPassword];
         let rows;
 
-        if (server1Toggle) {
-            const query = "INSERT IGNORE INTO users (email, username, pwd, creation_date) VALUES (?, ?, ?, CURRENT_DATE)";
-            const result = await db1.execute(query, values);
-            rows = result[0];
-        }
-        else if (server2Toggle) {
+
             const query = "INSERT INTO users (email, username, pwd, creation_date) VALUES ($1, $2, $3, CURRENT_DATE) ON CONFLICT (email) DO NOTHING;";
             const result = await db2.query(query, values);
             rows = result[0];
-        }
 
         const response = await fetch(`http://localhost:${PORT}/api/login`, {
             method: 'POST',
@@ -177,19 +161,12 @@ app.get('/users', authenticateToken, async (req, res) => {
     const query = 'SELECT * FROM users';
 
     try {
-        if (server1Toggle) {
-            const [results] = await db1.execute(query);
-            const exists = results.some(user => user.email === req.user.email);
-            const matchedUser = results.find(user => user.email === req.user.email);
-            return res.json({ match: exists, user: matchedUser });
-        }
-        else if (server2Toggle) {
+
             const results = await db2.query(query);
             const exists = results.rows.some(user => user.email === req.user.email);
             const matchedUser = results.rows.find(user => user.email === req.user.email);
             console.log("At least it's running fine");
             return res.json({match: exists, user: matchedUser});
-        }
     }
     catch (err) {
         console.error('Error executing query', err);
@@ -206,12 +183,8 @@ app.post('/users/change-password', async (req, res) => {
     try {
         const hashedPassword = await bcrypt.hash(pwd, 10);
         const values = [hashedPassword, email];
-        if (server1Toggle) {
-            await db1.execute('UPDATE users SET pwd = ? WHERE email = ?', values);
-        }
-        else if (server2Toggle) {
+
             await db2.query('UPDATE users SET pwd = $1 WHERE email = $2', values);
-        }
     }
     catch (error) {
         return res.status(500).send("Change password error");
@@ -227,12 +200,8 @@ app.post('/users/saveWB', async (req, res) => {
     const values = [words, email];
 
     try {
-        if (server1Toggle) {
-            await db1.execute('UPDATE users SET word_bank = ? WHERE email = ?', values);
-        }
-        if (server2Toggle) {
+
             await db2.query('UPDATE users SET word_bank = $1 WHERE email = $2', values);
-        }
     }
     catch (error) {
         return res.status(500).send("Saving bank error");
@@ -246,56 +215,35 @@ app.post('/users/save-local', async (req, res) => {
     }
     const values = [notesSaved, titlesSaved, contentsSaved, stylesSaved, email];
     try {
-        if (server1Toggle) {
-            const query = 'UPDATE users SET notes_saved = ?, note_title_array = ?, note_content_array = ?, note_style_array = ? WHERE email = ?';
-            await db1.execute(query, values);
-        }
-        if (server2Toggle) {
+
+
             const query = 'UPDATE users SET notes_saved = $1, note_title_array = $2, note_content_array = $3, note_style_array = $4 WHERE email = $5';
             await db2.query(query, values);
-        }
+
     }
     catch (error) {
         return res.status(500).send("Saving to local storage error");
     }
 });
 
-const pool = new Pool({
-    host: process.env.DB1_HOST,
-    port: process.env.DB1_PORT || 5432,
-    user: process.env.DB1_USER,
-    password: process.env.DB1_PASSWORD,
-    database: process.env.DB1_NAME,
-    ssl: process.env.DB1_SSL === 'true' ? { rejectUnauthorized: false } : false,
-    max: 10, // max number of clients in the pool (adjust as needed)
-    idleTimeoutMillis: 30000, // Close idle connections after 30 seconds
-    connectionTimeoutMillis: 2000 // Max time to wait for a new connection
-});
-
 async function connectToDatabase() {
     try {
-        if (db1 === 'blah') {
+            db2 = new Client({
+                    host: process.env.DB1_HOST,
+                    port: process.env.DB1_PORT || 5432,
+                    user: process.env.DB1_USER,
+                    password: process.env.DB1_PASSWORD,
+                    database: process.env.DB1_NAME,
+                    ssl: process.env.DB1_SSL === 'true' ? {rejectUnauthorized: false} : false
+            });
             try {
-                db2 = await pool.connect();
+                await db2.connect();
                 console.log("Database connection established");
-                db2.release();
-                server2Toggle = true;
             }
             catch (error) {
                 console.error('Error during DB connection:', error);
             }
-        }
-        else {
-            db1 = await mysql.createConnection({
-                host: process.env.DB2_HOST,
-                user: process.env.DB2_USER,
-                password: process.env.DB2_PASSWORD,
-                database: process.env.DB2_NAME,
-            });
-            
-            console.log("Database connection established");
-            server1Toggle = true;
-        }
+
     } catch (err) {
         console.error('Error during DB connection:', err);
     }

@@ -499,6 +499,14 @@ document.getElementById('old-pwd').addEventListener('click', function () {
 
 // Upon loading the application, this one runs
 
+const API_URL = "https://sticky-vomit-notes-xji9.vercel.app/api"; 
+
+fetch(`${API_URL}/users`)
+  .then(res => res.json())
+  .then(data => console.log(data))
+  .catch(err => console.error("Fetch error:", err));
+
+
 const url = new URL('/users', window.location.origin);
 console.log("url,", url);
 fetch(url, {
