@@ -7,4 +7,4 @@ Sticky Vomit Journals is a simple notetaking app designed for word vommitters an
 To get started, make a new note and start writing. If you make an account, you can save files both locally and on the cloud.
 
 #Link
-https://sticky-vomit-notes.vercel.app/
+https://notes-app-nu-seven.vercel.app/

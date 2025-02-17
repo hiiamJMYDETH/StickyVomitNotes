@@ -497,41 +497,40 @@ document.getElementById('old-pwd').addEventListener('click', function () {
     this.focus();
 });
 
-if (token) {
-    fetch('/api/users', {
-        method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${token}`,
-        },
+fetch('/api/users', {
+  method: 'GET',
+  headers: {
+    'Authorization': `Bearer ${token}`,
+  },
+})
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
     })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (!data || !token) return;
-            const user = data;
-            const accountBtn = document.getElementById('account-profile');
-            loginBtn.style.display = 'none';
-            accountBtn.style.display = 'grid';
-            accountBtn.innerHTML = `${user.username}`;
-            titlesData = !null ? user.note_title_array : [];
-            contentsData = !null ? user.note_content_array : [];
-            noteStylesData = !null ? user.note_style_array : [];
-            savedEmail = user.email;
-            loadNotes(user.notes_saved);
-            loadSavedStyles();
-            if (user.word_bank) {
-                setWordBank(user.word_bank);
-            }
-            setWordBank(wordBank);
-            for (let i = 0; i < wordBank.length; i++) {
-                trie.insert(wordBank[i]);
-            }
-        })
-        .catch(err => {
-            console.error('Error fetching account data:', err);
-        });
-}
+    .then(data => {
+        if (!data || !token) return;
+        const user = data;
+        const accountBtn = document.getElementById('account-profile');
+        loginBtn.style.display = 'none';
+        accountBtn.style.display = 'grid';
+        accountBtn.innerHTML = `${user.username}`;
+        titlesData = !null ? user.note_title_array : [];
+        contentsData = !null ? user.note_content_array : [];
+        noteStylesData = !null ? user.note_style_array : [];
+        savedEmail = user.email;
+        loadNotes(user.notes_saved);
+        loadSavedStyles();
+        if (user.word_bank) {
+            setWordBank(user.word_bank);
+        }
+        setWordBank(wordBank);
+        for (let i = 0; i < wordBank.length; i++) {
+            trie.insert(wordBank[i]);
+        }
+    })
+    .catch(err => {
+        console.error('Error fetching account data:', err);
+    });
+
