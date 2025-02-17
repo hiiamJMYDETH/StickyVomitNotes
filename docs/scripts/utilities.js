@@ -1,4 +1,4 @@
-import { replaceTextwithAnother } from "./scripts/note.js";
+import { replaceTextwithAnother } from "./note.js";
 
 export function setWordBank(bank) {
     wordBank = bank;

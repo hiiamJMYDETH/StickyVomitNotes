@@ -133,7 +133,7 @@ export function saveANote(note) {
             contentArray.push(div.textContent);
         }
     });
-    fetch('/upload-blob-json', {
+    fetch('/api/upload-blob-json', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ fileName: `${noteTitle}.txt`, content: contentArray }),

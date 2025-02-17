@@ -22,7 +22,7 @@ loginBtn.addEventListener('click', function (event) {
         incorrectToggle.style.display = 'grid';
         return;
     }
-    fetch('/users/login', {
+    fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: emailInfo.textContent.trim(), password: pwdInfo.value }),
@@ -68,7 +68,7 @@ signUpBtn.addEventListener('click', function (event) {
         incorrectToggle.style.display = 'grid';
         return;
     }
-    fetch('/users/signup', {
+    fetch('/api/signup', {
         method: 'POST',
         headers: { 'Content-type': 'application/json' },
         body: JSON.stringify({ name: newName, email: newEmail, password: newPwd }),
@@ -88,7 +88,6 @@ signUpBtn.addEventListener('click', function (event) {
                 incorrectToggle.style.display = 'grid';
             }
             else if (data.message === "Successfully created an account") {
-                // setGuestMode(false, emailInfo.textContent);
                 localStorage.setItem('token', data.token);
                 window.open('index.html', '_blank');
             }

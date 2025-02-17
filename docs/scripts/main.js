@@ -1,5 +1,5 @@
 // Global Constants 
-import { Trie, wordBank, setWordBank, dragElement, rightClickMenu, deleteRightClickMenu, generateNewNumber } from '../utilities.js';
+import { Trie, wordBank, setWordBank, dragElement, rightClickMenu, deleteRightClickMenu, generateNewNumber } from './utilities.js';
 import { saveANote, replaceTextwithAnother, insertNewBulletPoint, insertTab, bulletsymbols, getWordInProgress } from './note.js';
 
 let count = 0;
@@ -339,7 +339,7 @@ function saveToLocalStorage() {
             console.log(`Note with ID ${noteId} is not found.`)
         }
     }
-    fetch('/users/save-local', {
+    fetch('/api/save-local', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ notesSaved: count, titlesSaved: JSON.stringify(titlesData), contentsSaved: JSON.stringify(contentsData), stylesSaved: JSON.stringify(noteStylesData), email: savedEmail }),
@@ -355,7 +355,7 @@ function saveToLocalStorage() {
 }
 
 function saveWordBank() {
-    fetch('/users/saveWB', {
+    fetch('/api/saveWB', {
         method: 'POST',
         headers: { 'Content-type': 'application/json' },
         body: JSON.stringify({ words: JSON.stringify(wordBank), email: savedEmail })
@@ -415,7 +415,7 @@ document.getElementById('account-settings').addEventListener('click', function (
 saveAccChanges.addEventListener('click', function () {
     console.log(document.getElementById('old-pwd').textContent);
     console.log('Password is about to be changed');
-    fetch('/users/change-password', {
+    fetch('/api/change-password', {
         method: 'POST',
         headers: { 'Content-type': 'application/json' },
         body: JSON.stringify({ pwd: document.getElementById('old-pwd').value, email: savedEmail })
@@ -497,53 +497,41 @@ document.getElementById('old-pwd').addEventListener('click', function () {
     this.focus();
 });
 
-// Upon loading the application, this one runs
-
-const API_URL = "https://sticky-vomit-notes-xji9.vercel.app/api"; 
-
-fetch(`${API_URL}/users`)
-  .then(res => res.json())
-  .then(data => console.log(data))
-  .catch(err => console.error("Fetch error:", err));
-
-
-const url = new URL('/users', window.location.origin);
-console.log("url,", url);
-fetch(url, {
-    method: 'GET',
-    headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-type': 'application/json'
-    }
-})
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
+if (token) {
+    fetch('/api/users', {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+        },
     })
-    .then(data => {
-        if (!data.user) return;
-        const user = data.user;
-        const accountBtn = document.getElementById('account-profile');
-        loginBtn.style.display = 'none';
-        accountBtn.style.display = 'grid';
-        accountBtn.innerHTML = `${user.username}`;
-        titlesData = !null ? user.note_title_array : [];
-        contentsData = !null ? user.note_content_array : [];
-        noteStylesData = !null ? user.note_style_array : [];
-        savedEmail = user.email;
-        loadNotes(user.notes_saved);
-        loadSavedStyles();
-        if (user.word_bank) {
-            setWordBank(user.word_bank);
-        }
-        setWordBank(wordBank);
-        for (let i = 0; i < wordBank.length; i++) {
-            trie.insert(wordBank[i]);
-        }
-    })
-    .catch(err => {
-        console.log("url,", url);
-        console.error('Error fetching account data:', err);
-    });
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (!data || !token) return;
+            const user = data;
+            const accountBtn = document.getElementById('account-profile');
+            loginBtn.style.display = 'none';
+            accountBtn.style.display = 'grid';
+            accountBtn.innerHTML = `${user.username}`;
+            titlesData = !null ? user.note_title_array : [];
+            contentsData = !null ? user.note_content_array : [];
+            noteStylesData = !null ? user.note_style_array : [];
+            savedEmail = user.email;
+            loadNotes(user.notes_saved);
+            loadSavedStyles();
+            if (user.word_bank) {
+                setWordBank(user.word_bank);
+            }
+            setWordBank(wordBank);
+            for (let i = 0; i < wordBank.length; i++) {
+                trie.insert(wordBank[i]);
+            }
+        })
+        .catch(err => {
+            console.error('Error fetching account data:', err);
+        });
+}
