@@ -1,4 +1,4 @@
-node_modules/
-.env
-requests.rest
 .vercel
+.env
+node_modules
+requests.rest
